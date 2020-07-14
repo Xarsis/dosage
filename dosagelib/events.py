@@ -232,8 +232,8 @@ class HtmlEventHandler(EventHandler):
         if size:
             self.html.write(' width="%d" height="%d"' % size)
         self.html.write('/>\n')
-        if text:
-            self.html.write(u'<br/>%s\n' % text)
+        if comic.text:
+            self.html.write(u'<br/>%s\n' % comic.text)
         self.lastComic = comic.scraper.name
         self.lastUrl = pageUrl
 
