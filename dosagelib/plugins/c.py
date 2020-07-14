@@ -473,6 +473,7 @@ class CyanideAndHappiness(_BasicScraper):
     imageSearch = compile(tagre("img", "src", r'(//files.explosm.net/comics/[^"]+)', before="main-comic"))
     prevSearch = compile(tagre("a", "href", r'(/comics/\d+/)', after="nav-previous"))
     nextSearch = compile(tagre("a", "href", r"(/comics/\d+/)", after="nav-next"))
+	starter = bounceStarter
     help = 'Index format: n (unpadded)'
 
     def shouldSkipUrl(self, url, data):

@@ -4,7 +4,7 @@
 # Copyright (C) 2015-2020 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 from ..scraper import _ParserScraper
-from ..helpers import xpath_class
+from ..helpers import xpath_class, bounceStarter
 
 
 class QuantumVibe(_ParserScraper):
@@ -17,11 +17,14 @@ class QuantumVibe(_ParserScraper):
 
 class QuestionableContent(_ParserScraper):
     url = 'http://www.questionablecontent.net/'
+	starter = bounceStarter
     stripUrl = url + 'view.php?comic=%s'
     firstStripUrl = stripUrl % '1'
     imageSearch = '//img[contains(@src, "comics/")]'
     prevSearch = '//a[text()="Previous"]'
+	nextSearch = '//a[text()="Next"]'
     help = 'Index format: n (unpadded)'
+	textSearch = '//div[@id="news"]//text()'
 
 
 class Qwantz(_ParserScraper):

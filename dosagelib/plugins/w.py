@@ -157,6 +157,14 @@ class WintersLight(_ParserScraper):
     imageSearch = '//img[contains(@src, "comic/pages/")]'
     prevSearch = '//a[contains(text(), "Previous")]'
 
+class Witchy(_ParserScraper):
+    url = 'http://witchycomic.com/'
+    stripURL = url + 'comic/page-%s'
+    firstStripUrl = stripURL % '1'
+    imageSearch = '//div[@id="cc-comicbody"]//img[contains(@src, "/comics/")]'
+    prevSearch = '//a[@class="cc-prev"]'
+    textSearch = '//div[@class="cc-newsbody"]'
+    help = 'Index format: n'
 
 class Wonderella(_BasicScraper):
     url = 'http://nonadventures.com/'
