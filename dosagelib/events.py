@@ -156,6 +156,12 @@ def getDimensionForImage(filename, maxsize):
 
 class HtmlEventHandler(EventHandler):
     """Output in HTML format."""
+	"""CSS page (if used) is assumed to be in the same directory and named comics.css."""
+	"""CSS styles added are as follows:"""
+	"""  .navlink or the Previous/Next bars,"""
+	"""  .comictitle for the titles themselves,"""
+	"""  .comicurl for the address of the comic,"""
+	"""  .comictext for any text included with the comic."""
 
     name = 'html'
     encoding = 'utf-8'
@@ -168,9 +174,11 @@ class HtmlEventHandler(EventHandler):
         return fn
 
     def addNavLinks(self):
+	    self.html.write(u'<div class="navlink">')
         if self.yesterdayUrl:
             self.html.write(u'<a href="%s">Previous Day</a> | ' % self.yesterdayUrl)
-        self.html.write(u'<a href="%s">Next Day</a>\n' % self.tomorrowUrl)
+         self.html.write(u'<a href="%s">Next Day</a></div>\n' % self.tomorrowUrl)
+
 
     def start(self):
         """Start HTML output."""
@@ -207,6 +215,8 @@ class HtmlEventHandler(EventHandler):
 <meta http-equiv="Content-Type" content="text/html; charset=%s"/>
 <meta name="generator" content="%s"/>
 <title>Comics for %s</title>
+<link rel="stylesheet" href="comics.css" media="keep-going" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="comics.css"></noscript>
 </head>
 <body>
 ''' % (self.encoding, configuration.App, time.strftime('%Y/%m/%d', today)))
@@ -227,13 +237,14 @@ class HtmlEventHandler(EventHandler):
         imageUrl = self.getUrlFromFilename(filename)
         pageUrl = comic.referrer
         if pageUrl != self.lastUrl:
-            self.html.write(u'<li><a href="%s">%s</a>\n' % (pageUrl, pageUrl))
+            self.html.write(u'<li><a class="comicurl" href="%s">%s</a>\n' % (pageUrl, pageUrl))
+
         self.html.write(u'<br/><img src="%s"' % imageUrl)
         if size:
             self.html.write(' width="%d" height="%d"' % size)
         self.html.write('/>\n')
         if comic.text:
-            self.html.write(u'<br/>%s\n' % comic.text)
+            self.html.write(u'<br/><div class="comictext">%s</div>\n' % comic.text)
         self.lastComic = comic.scraper.name
         self.lastUrl = pageUrl
 
@@ -243,7 +254,7 @@ class HtmlEventHandler(EventHandler):
             self.html.write(u'</li>\n')
         if self.lastComic is not None:
             self.html.write(u'</ul>\n')
-        self.html.write(u'<li>%s</li>\n' % comic.scraper.name)
+        self.html.write(u'<li class="comictitle">%s</li></div>\n' % comic.scraper.name)
         self.html.write(u'<ul>\n')
 
     def end(self):
