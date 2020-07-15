@@ -15,6 +15,16 @@ from ..util import tagre
 from .common import _ComicControlScraper, _WordPressScraper, _WPNavi, _WPNaviIn, _WPWebcomic
 
 
+class TableTitans(_ParserScraper):
+    starter = bounceStarter
+    stripUrl = 'https://tabletitans.com/%s'
+    url = stripUrl % 'comic/road-to-embers-page-393'
+    firstStripUrl = stripUrl % 'comic/mines-of-madness-page-1'
+    imageSearch = '//section[@class="comic row"]/img'
+    prevSearch = '//a[contains(text(), "Previous")]'
+	nextSearch = '//a[contains(text(), "Newest")]'
+
+
 class TailsAndTactics(_ParserScraper):
     url = 'http://tailsandtactics.com/comic/'
     stripUrl = url + '%s/'
