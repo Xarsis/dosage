@@ -25,6 +25,7 @@ class QuestionableContent(_ParserScraper):
 	nextSearch = '//a[text()="Next"]'
     help = 'Index format: n (unpadded)'
 	textSearch = '//div[@id="news"]//text()'
+	textOptional = True
 
 
 class Qwantz(_ParserScraper):
