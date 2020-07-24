@@ -557,9 +557,8 @@ class StringTheory(_WPNavi):
 class StrongFemaleProtagonist(_ParserScraper):
     url = 'http://strongfemaleprotagonist.com/'
     stripUrl = url + '%s/'
-    css = True
-    imageSearch = 'article p img'
-    prevSearch = 'a.page-nav__item--left'
+    imageSearch = '//article/p/img'
+    prevSearch = '//a[@class="page-nav__item--left"]'
     help = 'Index format: issue-?/page-??'
 
     def shouldSkipUrl(self, url, data):
