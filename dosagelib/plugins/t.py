@@ -10,7 +10,7 @@ except ImportError:
     from cached_property import cached_property
 
 from ..scraper import _BasicScraper, _ParserScraper
-from ..helpers import indirectStarter
+from ..helpers import indirectStarter, bounceStarter
 from ..util import tagre
 from .common import _ComicControlScraper, _WordPressScraper, _WPNavi, _WPNaviIn, _WPWebcomic
 
