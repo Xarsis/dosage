@@ -155,14 +155,14 @@ def getDimensionForImage(filename, maxsize):
 
 
 class HtmlEventHandler(EventHandler):
-    """Output in HTML format."""
-	"""CSS page (if used) is assumed to be in the same directory and named comics.css."""
-	"""CSS styles added are as follows:"""
-	"""  .navlink or the Previous/Next bars,"""
-	"""  .comictitle for the titles themselves,"""
-	"""  .comicurl for the address of the comic,"""
-	"""  .comictext for any text included with the comic."""
-
+    """Output in HTML format.
+	CSS page (if used) is assumed to be in the same directory and named comics.css.
+	CSS styles added are as follows:
+	  .navlink or the Previous/Next bars,
+	  .comictitle for the titles themselves,
+	  .comicurl for the address of the comic,
+	  .comictext for any text included with the comic."""
+	
     name = 'html'
     encoding = 'utf-8'
 
@@ -177,7 +177,7 @@ class HtmlEventHandler(EventHandler):
 	    self.html.write(u'<div class="navlink">')
         if self.yesterdayUrl:
             self.html.write(u'<a href="%s">Previous Day</a> | ' % self.yesterdayUrl)
-         self.html.write(u'<a href="%s">Next Day</a></div>\n' % self.tomorrowUrl)
+        self.html.write(u'<a href="%s">Next Day</a></div>\n' % self.tomorrowUrl)
 
 
     def start(self):
