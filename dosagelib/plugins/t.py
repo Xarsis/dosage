@@ -22,7 +22,7 @@ class TableTitans(_ParserScraper):
     firstStripUrl = stripUrl % 'comic/mines-of-madness-page-1'
     imageSearch = '//section[@class="comic row"]/img'
     prevSearch = '//a[contains(text(), "Previous")]'
-	nextSearch = '//a[contains(text(), "Newest")]'
+    nextSearch = '//a[contains(text(), "Newest")]'
 
 
 class TailsAndTactics(_ParserScraper):

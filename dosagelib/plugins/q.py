@@ -16,15 +16,15 @@ class QuantumVibe(_ParserScraper):
 
 class QuestionableContent(_ParserScraper):
     url = 'http://www.questionablecontent.net/'
-	starter = bounceStarter
+    starter = bounceStarter
     stripUrl = url + 'view.php?comic=%s'
     firstStripUrl = stripUrl % '1'
     imageSearch = '//img[contains(@src, "comics/")]'
     prevSearch = '//a[text()="Previous"]'
-	nextSearch = '//a[text()="Next"]'
+    nextSearch = '//a[text()="Next"]'
     help = 'Index format: n (unpadded)'
-	textSearch = '//div[@id="news"]//text()'
-	textOptional = True
+    textSearch = '//div[@id="news"]//text()'
+    textOptional = True
 
 
 class Qwantz(_ParserScraper):
