@@ -6,14 +6,37 @@
 from re import compile
 from urllib.parse import urljoin
 
-from ..helpers import bounceStarter, xpath_class
+from ..helpers import bounceStarter
 from ..scraper import _BasicScraper, _ParserScraper
 from ..util import tagre
-from .common import _WordPressScraper, _WPWebcomic
+from .common import _WordPressScraper, _WPNavi, _WPWebcomic
 
 
 class RalfTheDestroyer(_WordPressScraper):
     url = 'http://ralfthedestroyer.com/'
+
+
+class RayFox(_WPNavi):
+    url = 'https://www.rayfoxthecomic.com/'
+    stripUrl = url + 'comic/%s/'
+    firstStripUrl = stripUrl % 'not-a-super-hero/it-begins'
+
+    def namer(self, imageUrl, pageUrl):
+        filename = imageUrl.rsplit('/', 1)[-1].split('.', 1)[0]
+        ext = imageUrl.rsplit('.', 1)[-1]
+        if filename == 'j':
+            filename = 'RF_E3_P52'
+        elif filename == '46' or filename == '55' or filename == '61':
+            filename = 'RF_E3_P' + filename
+        elif 'chapter-3-cover' in filename:
+            filename = 'RF_E3_Cover'
+        elif 'Cover2' in filename:
+            filename = 'RF_E1_' + filename
+        elif 'Volume-1-Cover' in filename:
+            filename = filename.replace('Ray-Fox-Volume-1-', 'RF_E1_')
+        elif filename[0] == '0':
+            filename = 'RF_E1_P' + filename
+        return filename + '.' + ext
 
 
 class RaynaOnTheRiver(_WordPressScraper):
@@ -107,7 +130,7 @@ class RomanticallyApocalyptic(_ParserScraper):
     url = 'http://romanticallyapocalyptic.com/'
     stripUrl = url + '%s'
     firstStripUrl = stripUrl % '0'
-    imageSearch = '//div[%s]/center//img' % xpath_class('comicpanel')
+    imageSearch = '//div[d:class("comicpanel")]/center//img'
     prevSearch = '//a[@accesskey="p"]'
     help = 'Index format: n'
     adult = True

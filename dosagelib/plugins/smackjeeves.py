@@ -3,14 +3,13 @@
 # Copyright (C) 2019-2020 Daniel Ring
 import re
 
-from ..helpers import xpath_class
 from ..scraper import _ParserScraper
 
 
 class SmackJeeves(_ParserScraper):
     baseUrl = 'https://www.smackjeeves.com/discover/'
     apiBase = 'https://www.smackjeeves.com/api/discover/'
-    prevSearch = '//a[i[{}]]'.format(xpath_class('i-arrow-double-left-black'))
+    prevSearch = '//a[i[d:class("i-arrow-double-left-black")]]'
     imageSearch = re.compile("comicData:[^']*'([^']*)'", re.DOTALL)
     help = 'Index format: n'
 
@@ -136,7 +135,6 @@ class SmackJeeves(_ParserScraper):
             cls('Blackdemon', 117183),
             cls('BlackDragon', 131654),
             cls('BlackFridayRule', 94517),
-            cls('BlackTapestries', 171490, adult=True),
             cls('BlackSheepcomic', 91663),
             cls('BleachRedux', 94169),
             cls('BlindandBlue', 110850),
@@ -241,7 +239,6 @@ class SmackJeeves(_ParserScraper):
             cls('FromnowonImagirl', 99018),
             cls('FruitloopAndMrDownbeat', 82798),
             cls('FullSpectrumTherapy', 156285),
-            cls('FurryExperience', 62354),
             cls('GamerCafe', 138841),
             cls('GamesPeoplePlayUpdatedWeekly', 72207),
             cls('GardenofHearts', 106504),
@@ -575,7 +572,6 @@ class SmackJeeves(_ParserScraper):
             cls('ThePremise', 118125),
             cls('ThePrincessAndTheGiant', 59629, endOfLife=True),
             cls('ThePropertyofHate', 117970),
-            cls('TheRealmOfKaerwyn', 156193),
             cls('TheReborn', 1898),
             cls('TheSearchForHenryJekyll', 139257),
             cls('TheSilverLeague', 110008),
