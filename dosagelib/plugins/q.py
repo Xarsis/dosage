@@ -4,7 +4,7 @@
 # Copyright (C) 2015-2020 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 from ..scraper import _ParserScraper
-
+from ..helpers import bounceStarter
 
 class QuantumVibe(_ParserScraper):
     url = 'https://www.quantumvibe.com/'
