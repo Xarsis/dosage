@@ -41,10 +41,9 @@ class ParallelUniversum(_BasicScraper):
     lang = 'de'
 
 
-class Paranatural(_ComicControlScraper):
-    url = 'http://paranatural.net/'
-    stripURL = url + 'comic/%s'
-    firstStripUrl = stripURL % 'chapter-1'
+class ParaNatural(_ComicControlScraper):
+    url = 'https://www.paranatural.net/'
+    firstStripUrl = url + 'comic/chapter-1'
     textSearch = imageSearch + '/@title'
     textOptional = True
 
