@@ -44,9 +44,7 @@ class ParallelUniversum(_BasicScraper):
 class ParaNatural(_ComicControlScraper):
     url = 'https://www.paranatural.net/'
     firstStripUrl = url + 'comic/chapter-1'
-    textSearch = imageSearch + '/@title'
-    textOptional = True
-
+ 
 
 class PartiallyClips(_WordPressScraper):
     url = ('https://web.archive.org/web/20180509161332/'

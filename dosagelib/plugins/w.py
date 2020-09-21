@@ -148,8 +148,6 @@ class WildeLife(_ComicControlScraper):
     url = 'http://www.wildelifecomic.com/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % '1'
-    textSearch = imageSearch + '/@title'
-    textOptional = True
 
 
 class WintersLight(_ParserScraper):
