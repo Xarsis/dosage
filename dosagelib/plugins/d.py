@@ -8,7 +8,8 @@ from re import compile, escape
 from ..scraper import _BasicScraper, _ParserScraper
 from ..helpers import indirectStarter, bounceStarter
 from ..util import tagre
-from .common import _ComicControlScraper, _WordPressScraper, _WPNaviIn, _WPWebcomic
+from .common import (_ComicControlScraper, _WordPressScraper, _WPNavi,
+    _WPNaviIn, _WPWebcomic)
 
 
 class Damonk(_BasicScraper):
@@ -355,24 +356,16 @@ class DrMcNinja(_ParserScraper):
     help = 'Index format: {episode}p{page}'
 
 
-class Drowtales(_BasicScraper):
-    baseUrl = 'http://www.drowtales.com/'
-    rurl = escape(baseUrl)
-    url = baseUrl + 'mainarchive.php'
+class Drowtales(_ParserScraper):
+    url = 'http://www.drowtales.com/mainarchive.php'
     stripUrl = url + '?sid=%s'
     firstStripUrl = stripUrl % '4192'
-    imageSearch = (
-        compile(tagre("img", "src", r'((%s)?mainarchive/[^"]+)' % rurl)),
-        compile(r'background-image:url\((mainarchive/[^\)]+center\.jpg)'),
-    )
-    prevSearch = compile(tagre("a", "href", r'(\?sid=\d+)', before="link_prev_top"))
+    imageSearch = '//div[@id="content_middle"]//img'
+    prevSearch = '//a[@id="link_prev_top"]'
     help = 'Index format: number'
 
 
-class DumbingOfAge(_BasicScraper):
+class DumbingOfAge(_WPNavi):
     url = 'http://www.dumbingofage.com/'
-    rurl = escape(url)
     stripUrl = url + '%s/'
-    prevSearch = compile(tagre("a", "href", r'(%s\d+/[^"]+)' % rurl, after="prev"))
-    imageSearch = compile(tagre("img", "src", r'(%scomics/\d+-\d+-\d+[^"]+)' % rurl))
     help = 'Index format: yyyy/comic/book-num/seriesname/stripname'
