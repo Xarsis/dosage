@@ -12,10 +12,9 @@ import time
 
 import lxml
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))  # noqa
-
+from dosagelib.scraper import scrapers
 from dosagelib.util import get_page
-from dosagelib import scraper, http
+from dosagelib import http
 
 
 def first_lower(x):
@@ -131,7 +130,7 @@ class ComicListUpdater(object):
         """Check if comic name already exists."""
         names = [(tmpl % name).lower() for tmpl in self.dup_templates]
         if names:
-            for scraperobj in scraper.get_scrapers():
+            for scraperobj in scrapers.get():
                 lname = scraperobj.name.lower()
                 if lname in names:
                     return scraperobj.name
@@ -197,5 +196,4 @@ def format_name(text):
     """Format a comic name."""
     name = html.unescape(text)
     name = "".join(capfirst(x) for x in name.split(" "))
-    name = asciify(name.translate(TRANS))
-    return name
+    return asciify(name.translate(TRANS))

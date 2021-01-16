@@ -67,7 +67,7 @@ class ComicFury(_ParserScraper):
         return "%s_%s%s" % (self.prefix, num, ext)
 
     @classmethod
-    def getmodules(cls):
+    def getmodules(cls):  # noqa: Allowed to be long
         return (
             # These were once in the list below, but fell out from the index...
             cls('BadassologyByMichaelBay', 'strudelology'),
@@ -550,6 +550,7 @@ class ComicFury(_ParserScraper):
             cls('ItsComplicated', 'itscomplicated'),
             cls('ItsJustAnotherDay', 'itsjustanotherday'),
             cls('ItsNEWDAY', 'itsnewday'),
+            cls('Jack', 'jackrabbit', adult=True),
             cls('JackAndTheBeanstalk', 'jackandthebeanstalk'),
             cls('JackFrostDoujin', 'jfdoujin'),
             cls('JackitAndFriends', 'jackitandfriends'),
@@ -1134,6 +1135,7 @@ class ComicFury(_ParserScraper):
             cls('UltimateSwordsSummoner', 'uss'),
             cls('UltraViresEnglish', 'ultravires-eng'),
             cls('UltraViresesky', 'ultravires'),
+            cls('Unconventional', 'unconventional', adult=True),
             cls('Underverse', 'underverse'),
             cls('UnfortunateCircumstances', 'unfortunatecircumstances'),
             cls('UniversityOfSpeed', 'u-speed'),

@@ -6,6 +6,8 @@
 from re import compile, escape, IGNORECASE, sub
 from os.path import splitext
 
+from requests.exceptions import HTTPError
+
 from ..scraper import _BasicScraper, _ParserScraper
 from ..helpers import indirectStarter, bounceStarter, joinPathPartsNamer
 from ..util import tagre
@@ -369,7 +371,7 @@ class SoloLeveling(_ParserScraper):
         '88-0_5d9e0dedb942e/03.': '88-0_5d9e0dedb942e/03b.',
         '88-0_5d9e0dedb942e/05.': '88-0_5d9e0dedb942e/05a.',
         '88-0_5d9e0dedb942e/30.': '88-0_5d9e0dedb942e/30a.',
-        '87-0_5d94cdebd9df7/01a.': '87-0_5d94cdebd9df7/01c.'
+        '87-0_5d94cdebd9df7/01a.': '87-0_5d94cdebd9df7/01c.',
     }
 
     def imageUrlModifier(self, imageUrl, data):
@@ -384,6 +386,16 @@ class SoloLeveling(_ParserScraper):
         self.imageUrls = super(SoloLeveling, self).fetchUrls(url, data, urlSearch)
         self.imageUrls = [self.imageUrlModifier(x, data) for x in self.imageUrls]
         return self.imageUrls
+
+    def getPage(self, url):
+        try:
+            return super().getPage(url)
+        except HTTPError as e:
+            # CloudFlare WAF
+            if e.response.status_code == 403 and '1020' in e.response.text:
+                self.geoblocked()
+            else:
+                raise e
 
     def getPrevUrl(self, url, data):
         return self.stripUrl % str(int(url.strip('/').rsplit('-', 1)[-1]) - 1)
@@ -521,7 +533,7 @@ class SSDD(_ParserScraper):
             self.stripUrl % '20050504',
             self.stripUrl % '20040705',
             self.stripUrl % '20030418',
-            self.stripUrl % '20030214'
+            self.stripUrl % '20030214',
         )
 
 
@@ -585,6 +597,7 @@ class StarfireAgency(_WPWebcomic):
         if pageUrl in self.chapters:
             self.currentChapter = self.currentChapter - 1
         return filename
+
 
 class StarTrip(_ComicControlScraper):
     url = 'https://www.startripcomic.com/'
@@ -671,11 +684,11 @@ class SurvivingTheWorld(_ParserScraper):
     imageSearch = (
         '//div[@class="img"]/img',      # When there's one image per strip
         '//div[@class="img"]/p/img',    # When there's multiple images per strip
-        '//td/img'                      # Special case for Lesson1296.html
+        '//td/img',                     # Special case for Lesson1296.html
     )
     prevSearch = (
         '//li[@class="previous"]/a',
-        '//td/a'                        # Special case for Lesson1296.html
+        '//td/a',                       # Special case for Lesson1296.html
     )
     multipleImagesPerStrip = True
     help = 'Index format: name'

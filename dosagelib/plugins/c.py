@@ -55,6 +55,7 @@ class CarryOnAliceBlueAndTheGardensOfQ(CarryOn):
     url = 'http://www.hirezfox.com/km/abgq/abgq1024/'
     stripUrl = url + 'd/%s.html'
     firstStripUrl = stripUrl % '20050401'
+    endOfLife = True
 
     def namer(self, imageUrl, pageUrl):
         # Fix filenames
@@ -66,6 +67,7 @@ class CarryOnLegendOfAnneBunny(CarryOn):
     url = 'http://www.hirezfox.com/km/loab/loab1024/'
     stripUrl = url + 'd/%s.html'
     firstStripUrl = stripUrl % '20040701'
+    endOfLife = True
 
     def namer(self, imageUrl, pageUrl):
         # Fix filenames of early comics
@@ -249,8 +251,8 @@ class CigarroAndCerveja(_ParserScraper):
     url = 'http://www.cigarro.ca/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'reacquaintance'
-    imageSearch = '//div[@id="comic"]//img',
-    prevSearch = '//a[contains(text()," Prev")]',
+    imageSearch = '//div[@id="comic"]//img'
+    prevSearch = '//a[contains(text()," Prev")]'
 
 
 class ClanOfTheCats(_WordPressScraper):
@@ -489,4 +491,4 @@ class CynWolf(_ParserScraper):
     endOfLife = True
 
     def shouldSkipUrl(self, url, data):
-        return '2016/the-end' in url # video
+        return '2016/the-end' in url  # video

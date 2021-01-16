@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2019-2020 Tobias Gruetzmacher
+# Copyright (C) 2019-2021 Tobias Gruetzmacher
 import re
 
 import pytest
@@ -7,6 +7,8 @@ import responses
 
 import dosagelib.cmd
 import httpmocks
+from dosagelib.plugins.s import SoloLeveling
+from dosagelib.scraper import GeoblockedException
 
 
 def cmd(*options):
@@ -14,7 +16,7 @@ def cmd(*options):
     assert dosagelib.cmd.main(("--allow-multiple",) + options) == 0
 
 
-@pytest.mark.usefixtures("_nosleep")
+@pytest.mark.usefixtures('_nosleep', '_noappdirs')
 class TestModules(object):
     """Test that specific comic modules work correctly."""
 
@@ -39,3 +41,11 @@ class TestModules(object):
 
         cmd('--basepath', str(tmpdir), 'CalvinAndHobbesEnEspanol')
         cmd('--basepath', str(tmpdir), 'CalvinAndHobbesEnEspanol:2012/07/22')
+
+    @responses.activate
+    def test_sololeveling_geoblock(self, tmpdir):
+        responses.add(responses.GET, 'https://w1.sololeveling.net/',
+            '<span>1020</span>', status=403)
+
+        with pytest.raises(GeoblockedException):
+            next(SoloLeveling.getmodules()[0].getStrips(1))

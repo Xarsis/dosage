@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2019-2020 Tobias Gruetzmacher
+# Copyright (C) 2019-2021 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 from ..scraper import _ParserScraper
 
@@ -19,13 +19,14 @@ class WebToons(_ParserScraper):
         self.firstStripUrl = self.stripUrl % '1'
 
     def starter(self):
-        # Set age-check cookie
-        self.session.cookies.set('ageGatePass', 'true', domain='webtoons.com')
+        # Avoid age/GDPR gate
+        for cookie in ('needGDPR', 'needCCPA', 'needCOPPA'):
+            self.session.cookies.set(cookie, 'false', domain='webtoons.com')
         # Find current episode number
         listPage = self.getPage(self.listUrl)
         currentEpisode = listPage.xpath('//div[@class="detail_lst"]/ul/li')[0].attrib['data-episode-no']
         # Check for completed tag
-        self.endOfLife = (listPage.xpath('//span[@class="txt_ico_completed2"]') != [])
+        self.endOfLife = (listPage.xpath('//div[@id="_asideDetail"]//span[@class="txt_ico_completed2"]') != [])
         return self.stripUrl % currentEpisode
 
     def fetchUrls(self, url, data, urlSearch):
@@ -44,7 +45,7 @@ class WebToons(_ParserScraper):
         return "%s-%03d.%s" % (episodeNum, imageNum, imageExt)
 
     @classmethod
-    def getmodules(cls):
+    def getmodules(cls):  # noqa: Allowed to be long
         return (
             # START AUTOUPDATE
             cls('1000', 'action/one-thousand', 1217),
@@ -89,6 +90,7 @@ class WebToons(_ParserScraper):
             cls('Blessed', 'drama/blessed', 1193),
             cls('BloodInk', 'action/blood-ink', 1490),
             cls('BloodlessWars', 'sf/bloodless-wars', 1622),
+            cls('BloopBloopRelationshipComic', 'challenge/bloop-bloop-relationship-comic', 239970),
             cls('Bluechair', 'slice-of-life/bluechair', 199),
             cls('BOOItsSex', 'slice-of-life/boo-its-sex', 1413),
             cls('BoyfriendOfTheDead', 'comedy/boyfriend-of-the-dead', 1102),
@@ -126,6 +128,7 @@ class WebToons(_ParserScraper):
             cls('DEADDAYS', 'horror/dead-days', 293),
             cls('Debunkers', 'challenge/debunkers', 148475),
             cls('DEEP', 'thriller/deep', 364),
+            cls('Defects', 'challenge/defects', 221106),
             cls('Denma', 'sf/denma', 921),
             cls('Dents', 'sf/dents', 671),
             cls('Deor', 'fantasy/deor', 1663),
@@ -163,6 +166,7 @@ class WebToons(_ParserScraper):
             cls('FourLeaf', 'fantasy/four-leaf', 1454),
             cls('FreakingRomance', 'romance/freaking-romance', 1467),
             cls('FridayForbiddenTales', 'thriller/friday', 388),
+            cls('GenshinImpact', 'challenge/genshin-impact', 242646),
             cls('Gepetto', 'sf/gepetto', 81),
             cls('GhostsAmongTheWildFlowers', 'fantasy/ghosts-over-wild-flowers', 718),
             cls('GhostTeller', 'horror/ghost-teller', 1307),
@@ -280,6 +284,7 @@ class WebToons(_ParserScraper):
             cls('OhHoly', 'romance/oh-holy', 809),
             cls('ORANGEMARMALADE', 'romance/orange-marmalade', 97),
             cls('Outrage', 'super-hero/outrage', 1450),
+            cls('OVERPOWERED', 'challenge/overpowered', 85292),
             cls('PacificRimAmara', 'sf/pacific-rim-amara', 1327),
             cls('PenguinLovesMev', 'slice-of-life/penguin-loves-mev', 86),
             cls('PhantomParadise', 'fantasy/phantom-paradise', 1250),
@@ -376,6 +381,7 @@ class WebToons(_ParserScraper):
             cls('Thornstone', 'fantasy/thornstone', 1612),
             cls('TickleTown', 'comedy/tickle-town', 428),
             cls('ToasterDude', 'comedy/toaster-dude', 1983),
+            cls('TokyoThreatDocumentationProject', 'challenge/tokyo-threat-documentation-project', 417973),
             cls('TowerOfGod', 'fantasy/tower-of-god', 95),
             cls('TrailerParkWarlock', 'comedy/trailer-park-warlock', 1512),
             cls('TrashBird', 'comedy/trash-bird', 473),
