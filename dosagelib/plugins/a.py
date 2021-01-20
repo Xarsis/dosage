@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
 # Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2020 Tobias Gruetzmacher
+# Copyright (C) 2015-2021 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 from re import compile, escape, MULTILINE
 
 from ..util import tagre
 from ..scraper import _BasicScraper, _ParserScraper
 from ..helpers import regexNamer, bounceStarter, indirectStarter
-from .common import _WordPressScraper, _WPNavi, _WPNaviIn, _WPWebcomic
+from .common import _WordPressScraper, _WordPressSpliced, _WPNavi, _WPNaviIn, _WPWebcomic
 
 
-class AbbysAgency(_WordPressScraper):
+class AbbysAgency(_WordPressSpliced):
     url = 'https://abbysagency.us/'
     stripUrl = url + 'blog/comic/%s/'
     firstStripUrl = stripUrl % 'a'
@@ -169,7 +169,7 @@ class Alice(_WordPressScraper):
     starter = indirectStarter
 
 
-class AlienDice(_WordPressScraper):
+class AlienDice(_WordPressSpliced):
     url = 'https://aliendice.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % '05162001'
@@ -185,7 +185,7 @@ class AlienDice(_WordPressScraper):
         return imageUrl.rsplit('/', 1)[-1].replace('20010831', '2001-08-31')
 
 
-class AlienDiceLegacy(_WordPressScraper):
+class AlienDiceLegacy(_WordPressSpliced):
     name = 'AlienDice/Legacy'
     stripUrl = 'https://aliendice.com/comic/%s/'
     url = stripUrl % 'legacy-2-15'
@@ -304,14 +304,21 @@ class Anaria(_ParserScraper):
         return filename.replace('00.jpg', 'new00.jpg').replace('new', '1')
 
 
-class Angband(_BasicScraper):
+class Angband(_ParserScraper):
     url = 'http://angband.calamarain.net/'
-    stripUrl = url + 'view.php?date=%s'
-    firstStripUrl = stripUrl % '2005-12-30'
-    imageSearch = compile(tagre("img", "src", r'(comics/Scroll[^"]+)'))
-    prevSearch = compile(tagre("a", "href", r'(view\.php\?date\=[^"]+)') +
-                         "Previous")
-    help = 'Index format: yyyy-mm-dd'
+    stripUrl = url + '%s'
+    imageSearch = '//img'
+    multipleImagesPerStrip = True
+    endOfLife = True
+
+    def starter(self):
+        page = self.getPage(self.url)
+        self.pages = page.xpath('//p/a[not(contains(@href, "cast"))]/@href')
+        self.firstStripUrl = self.pages[0]
+        return self.pages[-1]
+
+    def getPrevUrl(self, url, data):
+        return self.pages[self.pages.index(url) - 1]
 
 
 class Angels2200(_BasicScraper):
@@ -389,12 +396,6 @@ class ArtificialIncident(_WPWebcomic):
     url = 'https://www.artificialincident.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'issue-one-life-changing'
-
-
-class Ashes(_WordPressScraper):
-    url = 'http://www.flowerlarkstudios.com/comicpage/prologue/10232009/'
-    firstStripUrl = url
-    starter = indirectStarter
 
 
 class AstronomyPOTD(_ParserScraper):
