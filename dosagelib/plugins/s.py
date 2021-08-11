@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
 # Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2020 Tobias Gruetzmacher
+# Copyright (C) 2015-2021 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 from re import compile, escape, IGNORECASE, sub
 from os.path import splitext
@@ -312,15 +312,21 @@ class SluggyFreelance(_ParserScraper):
 
 
 class SMBC(_ComicControlScraper):
-    url = 'http://www.smbc-comics.com/'
-    firstStripUrl = url + 'comic/2002-09-05'
-    multipleImagesPerStrip = True
+    url = 'https://www.smbc-comics.com/'
+    stripUrl = url + 'comic/%s'
+    firstStripUrl = stripUrl % '2002-09-05'
     imageSearch = ['//img[@id="cc-comic"]', '//div[@id="aftercomic"]/img']
     textSearch = '//img[@id="cc-comic"]/@title'
+    multipleImagesPerStrip = True
 
-    def namer(self, image_url, page_url):
-        """Remove random noise from name."""
-        return image_url.rsplit('-', 1)[-1]
+    def namer(self, imageUrl, pageUrl):
+        # Remove random noise from filename
+        filename = imageUrl.rsplit('/', 1)[-1]
+        if '-' in filename and len(filename.rsplit('-', 1)[-1]) > 12:
+            filename = filename.rsplit('-', 1)[-1]
+        elif len(filename) > 22 and filename[0] == '1':
+            filename = filename[10:]
+        return filename
 
 
 class SnowFlame(_WordPressScraper):
@@ -345,11 +351,13 @@ class SnowFlame(_WordPressScraper):
 
 
 class SodiumEyes(_WordPressScraper):
-    url = 'http://sodiumeyes.com/'
+    url = 'https://web.archive.org/web/20200220041406/http://sodiumeyes.com/'
+    starter = indirectStarter
+    endOfLife = True
 
 
 class SoloLeveling(_ParserScraper):
-    url = 'https://w1.sololeveling.net/'
+    url = 'https://w3.sololeveling.net/'
     stripUrl = url + 'manga/solo-leveling-chapter-%s/'
     firstStripUrl = stripUrl % '1'
     imageSearch = '//div[@class="img_container"]//img'
@@ -669,7 +677,7 @@ class Supercell(_ParserScraper):
     url = 'https://www.supercellcomic.com/'
     stripUrl = url + 'pages/%s.html'
     firstStripUrl = stripUrl % '0001'
-    imageSearch = '//div[@class="comicpage"]//img'
+    imageSearch = '//img[@class="comicStretch"]'
     prevSearch = '//div[@class="comicnav"]/a[./img[contains(@src, "comnav_02")]]'
 
 
@@ -699,5 +707,5 @@ class SwordsAndSausages(_ParserScraper):
     stripUrl = url + '/%s'
     firstStripUrl = stripUrl % '1-1'
     imageSearch = '//img[@class="comic-image"]'
-    prevSearch = '//a[@class="prev"]'
+    prevSearch = '//a[./span[contains(text(), "Previous")]]'
     multipleImagesPerStrip = True

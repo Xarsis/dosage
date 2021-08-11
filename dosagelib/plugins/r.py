@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
 # Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2020 Tobias Gruetzmacher
+# Copyright (C) 2015-2021 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 from re import compile
 from urllib.parse import urljoin
@@ -76,6 +76,23 @@ class RealmOfAtland(_BasicScraper):
     prevSearch = compile(tagre("a", "href", r'(\?p=\d+)', after="cg_back"))
     imageSearch = compile(tagre("img", "src", r'(images/strips/atland\d+.[^"]+)'))
     help = 'Index format: nnn'
+
+
+class Recursion(_ParserScraper):
+    url = 'https://recursioncomic.com/'
+    stripUrl = url + '%s'
+    firstStripUrl = stripUrl % '0001'
+    imageSearch = '//div[@class="content"]//img'
+    prevSearch = '//link[@rel="prev"]'
+
+    def namer(self, imageUrl, pageUrl):
+        # Fix inconsistent filenames
+        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = filename.replace('0bf62e92-2c98-4fb2-8ed7-4584980beb17', 'page0005')
+        filename = filename.replace('76112837-c5cd-4df7-8c53-3ed5c25194cf', 'page0003')
+        filename = filename.replace('ed271080-6b1b-4d7a-8509-b2d8a15da805', 'page0002')
+        filename = filename.replace('7b194ef7-ac77-4b5c-aed0-826901d13d04', 'page0001')
+        return filename
 
 
 class RedMeat(_ParserScraper):
@@ -153,22 +170,3 @@ class Ruthe(_BasicScraper):
     imageSearch = compile(tagre("img", "src", r'(/?cartoons/strip_\d+[^"]+)'))
     prevSearch = compile(tagre("a", "href", r'(/cartoon/\d+/datum/asc/)'))
     help = 'Index format: number'
-
-
-class Ryugou(_WPWebcomic):
-    url = 'http://ryugou.swashbuckledcomics.com/'
-    stripUrl = url + 'comic/%s/'
-    firstStripUrl = 'ryugou-chapter-1-cover'
-    starter = bounceStarter
-    adult = True
-
-    def namer(self, imageUrl, pageUrl):
-        title = pageUrl.rstrip('/').rsplit('/', 1)[-1]
-        ext = imageUrl.rsplit('.', 1)[-1]
-        return title + '.' + ext
-
-    def fetchUrls(self, url, data, urlSearch):
-        imageUrls = super(Ryugou, self).fetchUrls(url, data, urlSearch)
-        if url == self.stripUrl % '1-3':
-            imageUrls = [imageUrls[1]]
-        return imageUrls

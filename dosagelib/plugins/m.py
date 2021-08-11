@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
 # Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2020 Tobias Gruetzmacher
+# Copyright (C) 2015-2021 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 import json
 from re import compile, escape, IGNORECASE
@@ -9,6 +9,7 @@ from re import compile, escape, IGNORECASE
 from ..helpers import indirectStarter
 from ..scraper import _BasicScraper, _ParserScraper
 from ..util import tagre
+from ..xml import NS
 from .common import _ComicControlScraper, _WordPressScraper, _WPWebcomic
 
 
@@ -81,6 +82,15 @@ class MarriedToTheSea(_ParserScraper):
     def namer(self, image_url, page_url):
         unused, date, filename = image_url.rsplit('/', 2)
         return '%s-%s' % (date, filename)
+
+
+class MarryMe(_ParserScraper):
+    url = 'http://marryme.keenspot.com/'
+    stripUrl = url + 'd/%s.html'
+    firstStripUrl = stripUrl % '20120730'
+    imageSearch = '//img[@class="ksc"]'
+    prevSearch = '//a[@rel="prev"]'
+    endOfLife = True
 
 
 class MaxOveracts(_ParserScraper):
@@ -159,7 +169,11 @@ class MistyTheMouse(_WordPressScraper):
 class MonkeyUser(_ParserScraper):
     url = 'https://www.monkeyuser.com/'
     prevSearch = '//div[@title="previous"]/a'
-    imageSearch = '//div[@class="content"]/p/img'
+    imageSearch = '//div[d:class("content")]/p/img'
+
+    def shouldSkipUrl(self, url, data):
+        # videos
+        return data.xpath('//div[d:class("video-container")]', namespaces=NS)
 
 
 class MonsieurLeChien(_BasicScraper):
@@ -174,25 +188,15 @@ class MonsieurLeChien(_BasicScraper):
 
 
 class Moonlace(_WPWebcomic):
-    stripUrl = 'http://dbcomics.darkblueworkshop.com/moonlace/%s/'
-    firstStripUrl = stripUrl % 'prologue/page-1'
-    url = firstStripUrl
-    latestSearch = '//main' + _WPWebcomic.latestSearch
+    url = 'https://moonlace.darkbluecomics.com/'
+    stripUrl = url + 'comic/%s/'
+    firstStripUrl = stripUrl % 'page-0-1'
     adult = True
 
     def starter(self):
         # Set age-gate cookie
-        self.session.cookies.set('age_gate', '1', domain='darkblueworkshop.com')
+        self.session.cookies.set('age_gate', '1', domain='moonlace.darkblueworkshop.com')
         return indirectStarter(self)
-
-    def namer(self, imageUrl, pageUrl):
-        # Prepend chapter title to page filenames
-        chapter = pageUrl.rstrip('/').rsplit('/', 3)[-2]
-        chapter = chapter.replace('prologue', 'chapter-0-prologue')
-        chapter = chapter.replace('chapter-1', 'chapter-1-heritage')
-        chapter = chapter.replace('chapter2', 'chapter-2')
-        page = imageUrl.rsplit('/', 1)[-1]
-        return chapter + '_' + page
 
 
 class Moonsticks(_ParserScraper):

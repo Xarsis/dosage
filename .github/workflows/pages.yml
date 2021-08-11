@@ -1,0 +1,34 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 10
+
+      - name: Set up Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.9
+
+      - name: Build
+        run: |
+          pip install git+https://github.com/spanezz/staticsite.git@v1.2
+          ssite build --output public
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3.8.0
+        with:
+          cname: dosage.rocks
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          exclude_assets: 'Jenkinsfile,dosagelib,scripts,setup.*,tests,*.ini'

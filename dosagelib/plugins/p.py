@@ -248,11 +248,12 @@ class PoppyOPossum(_WordPressScraper):
 
 
 class PowerNap(_ParserScraper):
-    url = 'http://www.powernapcomic.com/'
+    url = 'https://www.powernapcomic.com/powernap/'
     stripUrl = url + 'd/%s.html'
     firstStripUrl = stripUrl % '20110617'
-    imageSearch = '//img[contains(@src, "/pnap")]'
+    imageSearch = '//center/img'
     prevSearch = '//a[./img[contains(@src, "previous")]]'
+    endOfLife = True
 
     def imageUrlModifier(self, url, data):
         return url.replace('\n', '').strip()
@@ -308,13 +309,14 @@ class ProphecyOfTheCircle(_WPNavi):
 
 
 class Prototype(_ParserScraper):
-    stripUrl = 'http://planetprototype.com/%s/'
+    stripUrl = 'https://web.archive.org/web/20201030035444/http://planetprototype.com/%s/'
     firstStripUrl = stripUrl % '2018/03/30/vol-1-ch-1-front-cover'
     url = firstStripUrl
     imageSearch = '//img[contains(@class, "wp-post-image")]'
     prevSearch = '//a[.//text()="Previous"]'
     latestSearch = '//a[.//text()="Latest"]'
     starter = indirectStarter
+    endOfLife = True
 
 
 class PS238(_ParserScraper):
