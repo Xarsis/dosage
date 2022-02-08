@@ -88,7 +88,7 @@ class CaseyAndAndy(_BasicScraper):
 
 class Castoff(_BasicScraper):
     url = 'http://www.castoff-comic.com/comic/'
-    stripURL = url + '%s'
+    stripUrl = url + '%s'
     firstStripUrl = stripUrl % '1'
     imageSearch = compile(tagre("img", "src", r'assets/images/comics/*/(\d+.jpg)'))
     prevSearch = compile(tagre("a", "href", r'(/comic/\d+)', before="nav-to-prev"))
