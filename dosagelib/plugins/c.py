@@ -86,6 +86,14 @@ class CaseyAndAndy(_BasicScraper):
     help = 'Index format: number'
 
 
+class Castoff(_BasicScraper):
+    url = 'http://www.castoff-comic.com/comic/'
+    stripURL = url + '%s'
+    firstStripUrl = stripUrl % '1'
+    imageSearch = compile(tagre("img", "src", r'assets/images/comics/*/(\d+.jpg)'))
+    prevSearch = compile(tagre("a", "href", r'(/comic/\d+)', before="nav-to-prev"))
+
+
 class CasuallyKayla(_BasicScraper):
     url = 'http://casuallykayla.com/'
     stripUrl = url + '?p=%s'
@@ -445,12 +453,12 @@ class CutLoose(_ParserScraper):
 
 
 class CyanideAndHappiness(_BasicScraper):
-    url = 'https://explosm.net/comics/'
-    stripUrl = url + '%s/'
+    url = 'https://explosm.net/comics/latest/'
+    stripUrl = 'https://explosm.net/comics/%s/'
     firstStripUrl = stripUrl % '15'
-    imageSearch = compile(tagre("img", "src", r'(.*files.explosm.net/[^/]+/[^"]+)', before="main-comic"))
-    prevSearch = compile(tagre("a", "href", r'(/comics/\d+/)', after="nav-previous"))
-    nextSearch = compile(tagre("a", "href", r"(/comics/\d+/)", after="nav-next"))
+    imageSearch = compile(tagre("img", "src", r'(static.explosm.net/[^/]+/[^"]+)', before="MainComic__ComicImage"))
+    prevSearch = compile(tagre("a", "href", r'(/comics/\d+/#comic)', after="ComicSelector__Container"))
+    nextSearch = compile(tagre("a", "href", r"(/comics/\d+/#comic)", after="Random-Button"))
     starter = bounceStarter
     help = 'Index format: n (unpadded)'
 
