@@ -5,6 +5,10 @@
 """
 Script to get a list of comicskingdom.com comics and save the info in a JSON
 file for further processing.
+
+- Cert chain downloaded and added to scripts folder
+- Needs REQUESTS_CA_BUNDLE=/path/to/chain/pem included before dosage call
+- Ted Riley - Feb 8 2022
 """
 
 from scriptutil import ComicListUpdater

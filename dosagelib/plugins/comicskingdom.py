@@ -5,19 +5,22 @@ from ..scraper import _BasicScraper
 from ..helpers import bounceStarter, joinPathPartsNamer
 
 import re
+from ..util import tagre
 
 
 class ComicsKingdom(_BasicScraper):
     imageSearch = re.compile(r'property="og:image" content="(https://[^"]*img\.php\?[^"]+)"')
-    prevSearch = re.compile(r':is-left-arrow="true"[^>]*date-slug="(\d\d\d\d-\d\d-\d\d)"')
-    nextSearch = re.compile(r':is-left-arrow="false"[^>]*date-slug="(\d\d\d\d-\d\d-\d\d)"')
+#   prevSearch = re.compile(r':is-left-arrow="true"[^>]*date-slug="(\d\d\d\d-\d\d-\d\d)"')
+    prevSearch = re.compile(tagre("a", "href", r'([^"]*zits/\d+-\d+-\d+)') + tagre("img", "alt", r'Previous comic'))
+#   nextSearch = re.compile(r':is-left-arrow="false"[^>]*date-slug="(\d\d\d\d-\d\d-\d\d)"')
+    nextSearch = re.compile(tagre("a", "href", r'([^"]*zits/\d+-\d+-\d+)') + tagre("img", "alt", r'Next comic'))
     starter = bounceStarter
     namer = joinPathPartsNamer((-2, -1), ())
     help = 'Index format: yyyy-mm-dd'
 
     def __init__(self, name, path):
         super(ComicsKingdom, self).__init__('ComicsKingdom/' + name)
-        self.url = 'https://www.comicskingdom.com/' + path
+        self.url = 'https://comicskingdom.com//' + path + '/'
         self.stripUrl = self.url + '/%s'
 
     def link_modifier(self, url, tourl):
