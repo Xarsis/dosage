@@ -172,10 +172,20 @@ class HtmlEventHandler(EventHandler):
         fn = os.path.join(self.basepath, 'html', fn + ".html")
         return os.path.abspath(fn)
 
+    def fnFromDateCK(self, date):
+        """Get filename from date."""
+        fn = time.strftime('comics-%Y%m%d', date)
+        fn = os.path.join(self.basepath, 'html', fn + "-1.html")
+        return os.path.abspath(fn)
+
     def addNavLinks(self):
         self.html.write(u'<div class="navlink">')
         if self.yesterdayUrl:
             self.html.write(u'<a href="%s">Previous Day</a> | ' % self.yesterdayUrl)
+        self.ckPage = self.fnFromDateCK(today)
+        if os.path.exists(ckPage):
+            self.html.write(u'<a href="%s">Today\'s ComicsKingdom</a> | ' % self.ckPage)
+            self.html.write(u'<a href="%s">Today\'s Other Comics</a> | ' % self.fn)
         self.html.write(u'<a href="%s">Next Day</a></div>\n' % self.tomorrowUrl)
 
 
