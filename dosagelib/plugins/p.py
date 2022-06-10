@@ -1,19 +1,25 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
 # Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2020 Tobias Gruetzmacher
+# Copyright (C) 2015-2022 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 from re import compile, escape
 
 from ..scraper import _BasicScraper, _ParserScraper
 from ..helpers import bounceStarter, queryNamer, indirectStarter
 from ..util import tagre
-from .common import _ComicControlScraper, _WordPressScraper, _WPNavi
+from .common import ComicControlScraper, WordPressScraper, WordPressNavi
 
 
-class PandyLand(_WordPressScraper):
-    url = 'http://pandyland.net/'
-    firstStripUrl = 'http://pandyland.net/1/'
+class PandyLand(_ParserScraper):
+    url = ('https://web.archive.org/web/20200122163307/'
+        'http:/pandyland.net/')
+    stripUrl = url + '%s'
+    firstStripUrl = stripUrl % '1'
+    imageSearch = '//div[d:class("comic")]/img'
+    prevSearch = '//a[contains(text(), "previous")]'
+    help = 'Index format: number'
+    endOfLife = True
 
 
 class ParadigmShift(_BasicScraper):
@@ -41,12 +47,12 @@ class ParallelUniversum(_BasicScraper):
     lang = 'de'
 
 
-class ParaNatural(_ComicControlScraper):
+class ParaNatural(ComicControlScraper):
     url = 'https://www.paranatural.net/'
     firstStripUrl = url + 'comic/chapter-1'
  
 
-class PartiallyClips(_WordPressScraper):
+class PartiallyClips(WordPressScraper):
     url = ('https://web.archive.org/web/20180509161332/'
         'http://partiallyclips.com/')
     firstStripUrl = url + 'comic/screaming-woman/'
@@ -102,19 +108,16 @@ class PennyAndAggie(_BasicScraper):
 class PennyArcade(_ParserScraper):
     url = 'https://www.penny-arcade.com/comic/'
     stripUrl = url + '%s'
-    firstStripUrl = stripUrl % '1998/11/18'
-    imageSearch = '//div[@id="comicFrame"]//img'
-    prevSearch = '//a[d:class("btnPrev")]'
-    nextSearch = '//a[d:class("btnNext")]'
+    firstStripUrl = stripUrl % '1998/11/18/the-sin-of-long-load-times'
+    imageSearch = '//div[d:class("comic-panel")]//img'
+    prevSearch = '//a[d:class("older")]'
+    nextSearch = '//a[d:class("newer")]'
+    multipleImagesPerStrip = True
     starter = bounceStarter
     help = 'Index format: yyyy/mm/dd'
 
-    def namer(self, image_url, page_url):
-        p = page_url.split('/')
-        return '%04d%02d%02d' % (int(p[4]), int(p[5]), int(p[6]))
 
-
-class PeppermintSaga(_WPNavi):
+class PeppermintSaga(WordPressNavi):
     url = 'http://www.pepsaga.com/'
     stripUrl = url + '?p=%s'
     firstStripUrl = stripUrl % '3'
@@ -122,7 +125,7 @@ class PeppermintSaga(_WPNavi):
     adult = True
 
 
-class PeppermintSagaBGR(_WPNavi):
+class PeppermintSagaBGR(WordPressNavi):
     url = 'http://bgr.pepsaga.com/'
     stripUrl = url + '?p=%s'
     firstStripUrl = stripUrl % '4'
@@ -173,11 +176,11 @@ class PHDComics(_ParserScraper):
         )
 
 
-class Picklewhistle(_ComicControlScraper):
+class Picklewhistle(ComicControlScraper):
     url = 'http://www.picklewhistle.com/'
 
 
-class PicPakDog(_WordPressScraper):
+class PicPakDog(WordPressScraper):
     url = 'http://www.picpak.net/'
     firstStripUrl = url + 'comic/dogs-cant-spell/'
 
@@ -240,7 +243,7 @@ class PoorlyDrawnLines(_ParserScraper):
     prevSearch = '//a[@rel="prev"]'
 
 
-class PoppyOPossum(_WordPressScraper):
+class PoppyOPossum(WordPressScraper):
     baseUrl = 'https://www.poppy-opossum.com/'
     url = baseUrl + '?latest'
     stripUrl = baseUrl + 'comic/%s'
@@ -271,7 +274,7 @@ class Precocious(_ParserScraper):
     help = 'Index format: yyyy/mm/dd'
 
 
-class PrinceOfSartar(_WPNavi):
+class PrinceOfSartar(WordPressNavi):
     url = 'http://www.princeofsartar.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'introduction-chapter-1'
@@ -286,7 +289,7 @@ class PrinceOfSartar(_WPNavi):
         return '%s.%s' % (title, image_ext)
 
 
-class ProphecyOfTheCircle(_WPNavi):
+class ProphecyOfTheCircle(WordPressNavi):
     url = 'https://www.prophecyofthecircle.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'prologue'

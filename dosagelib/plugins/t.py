@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
 # Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2020 Tobias Gruetzmacher
+# Copyright (C) 2015-2022 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 from re import compile, escape, MULTILINE
 try:
@@ -9,10 +9,16 @@ try:
 except ImportError:
     from cached_property import cached_property
 
+<<<<<<< HEAD
 from ..scraper import _BasicScraper, _ParserScraper
 from ..helpers import indirectStarter, bounceStarter
+=======
+from ..scraper import _BasicScraper, _ParserScraper, ParserScraper
+from ..helpers import indirectStarter, joinPathPartsNamer
+>>>>>>> a9251bc09a3230f98372623c0b3c5c845864c0cf
 from ..util import tagre
-from .common import _ComicControlScraper, _WordPressScraper, _WPNavi, _WPNaviIn, _WPWebcomic
+from .common import (ComicControlScraper, WordPressScraper, WordPressSpliced,
+        WordPressNavi, WordPressWebcomic)
 
 
 class TableTitans(_ParserScraper):
@@ -33,21 +39,13 @@ class TailsAndTactics(_ParserScraper):
     prevSearch = '//a[text()=" Back"]'
 
 
-class TaleOfTenThousand(_ParserScraper):
-    url = 'http://www.t10k.club/'
-    stripUrl = url + 'comic/%s'
-    firstStripUrl = stripUrl % '1-01_00'
-    imageSearch = '//article[@id="comic"]//img'
-    prevSearch = '//a[d:class("prev")]'
-
-
-class TekMage(_WPNavi):
+class TekMage(WordPressNavi):
     url = 'https://tekmagecomic.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'chapter-1-page-1'
 
 
-class Tamberlane(_WPWebcomic):
+class Tamberlane(WordPressWebcomic):
     baseUrl = 'https://www.tamberlanecomic.com/'
     url = baseUrl + 'latest/'
     stripUrl = baseUrl + 'tamberlane/%s/'
@@ -56,7 +54,7 @@ class Tamberlane(_WPWebcomic):
     prevSearch = '//a[@class="previous-link"]'
 
 
-class TheBoyWhoFell(_ComicControlScraper):
+class TheBoyWhoFell(ComicControlScraper):
     url = 'https://www.boywhofell.com/'
     firstStripUrl = url + 'comic/ch00p00'
 
@@ -72,6 +70,27 @@ class TheBrads(_ParserScraper):
     endOfLife = True
 
 
+class TheChroniclesOfHuxcyn(WordPressScraper):
+    url = 'https://huxcyn.com/'
+    stripUrl = url + 'comic/%s'
+    firstStripUrl = stripUrl % 'opening-001'
+
+    def namer(self, imageUrl, pageUrl):
+        # Fix inconsistent filenames
+        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = filename.replace('IMG_0504', 'TCoH109')
+        filename = filename.replace('tcoh', 'TCoH')
+        filename = filename.replace('1599151639.xizana_f3a6458e-8d94-4259-bec3-5a92706fe493_jpeg', 'october.2020.cover')
+        filename = filename.replace('huxonsword', 'october.2020.huxonsword')
+        filename = filename.replace('New_Canvas100pageswebimage', 'TCoH100')
+        if filename[0] == '0':
+            filename = 'TCoH' + filename
+        elif filename[0] == '3':
+            pagenum = int(filename.rsplit('.', 1)[0].split('_', 1)[1].split('_', 1)[0])
+            filename = 'TCoH' + str(40 + pagenum) + filename.rsplit('.', 1)[-1]
+        return filename
+
+
 class TheClassMenagerie(_ParserScraper):
     stripUrl = 'http://www.theclassm.com/d/%s.html'
     url = stripUrl % '20050717'
@@ -82,7 +101,7 @@ class TheClassMenagerie(_ParserScraper):
     endOfLife = True
 
 
-class TheDepths(_WPWebcomic):
+class TheDepths(WordPressWebcomic):
     url = 'https://www.thedepthscomic.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'page-01'
@@ -98,36 +117,32 @@ class TheDepths(_WPWebcomic):
         return filename
 
 
-class TheDevilsPanties(_WPNavi):
+class TheDevilsPanties(WordPressNavi):
     url = 'https://thedevilspanties.com/'
     stripUrl = url + 'archives/%s'
     firstStripUrl = stripUrl % '300'
     help = 'Index format: number'
 
 
-class TheDreamlandChronicles(_WordPressScraper):
+class TheDreamlandChronicles(WordPressScraper):
     url = 'http://www.thedreamlandchronicles.com/'
 
 
-class TheForgottenOrder(_ComicControlScraper):
+class TheForgottenOrder(ComicControlScraper):
     url = 'http://www.forgottenordercomic.com/'
     firstStripUrl = url + 'comic/prolouge-01-book-1'
 
 
-class TheGamerCat(_ParserScraper):
+class TheGamerCat(WordPressSpliced):
     url = 'https://thegamercat.com/'
-    stripUrl = url + 'comic/%s/'
-    firstStripUrl = stripUrl % '06102011'
-    imageSearch = '//div[@id="comic"]//img'
-    prevSearch = '//a[contains(@class, "comic-nav-previous")]'
-    help = 'Index format: stripname'
+    firstStripUrl = url +  'comic/06102011/'
 
 
-class TheGentlemansArmchair(_WordPressScraper):
+class TheGentlemansArmchair(WordPressScraper):
     url = 'http://thegentlemansarmchair.com/'
 
 
-class TheGentleWolf(_WordPressScraper):
+class TheGentleWolf(WordPressScraper):
     url = 'https://thegentlewolf.net/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'tgw-001'
@@ -140,12 +155,12 @@ class TheGentleWolf(_WordPressScraper):
         return filename
 
 
-class TheGlassScientists(_ComicControlScraper):
+class TheGlassScientists(ComicControlScraper):
     url = 'https://www.theglassscientists.com/'
     firstStripUrl = url + 'comic/chapter-i'
 
 
-class TheJunkHyenasDiner(_WordPressScraper):
+class TheJunkHyenasDiner(WordPressScraper):
     url = 'http://junkhyenasdiner.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'intro'
@@ -161,7 +176,7 @@ class TheLandscaper(_ParserScraper):
     endOfLife = True
 
 
-class TheMelvinChronicles(_WordPressScraper):
+class TheMelvinChronicles(WordPressScraper):
     url = 'http://melvin.jeaniebottle.com/'
 
 
@@ -176,7 +191,7 @@ class TheNightBelongsToUs(_ParserScraper):
     adult = True
 
 
-class TheNoob(_WordPressScraper):
+class TheNoob(WordPressScraper):
     url = 'http://thenoobcomic.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % '1'
@@ -244,7 +259,7 @@ class TheWhiteboard(_ParserScraper):
         return self.url + tourl
 
 
-class TheWotch(_WordPressScraper):
+class TheWotch(WordPressScraper):
     url = 'http://www.thewotch.com/'
     firstStripUrl = url + '?comic=enter-the-wotch'
 
@@ -260,7 +275,7 @@ class ThisIsIndexed(_BasicScraper):
     help = 'Index format: number'
 
 
-class ThreePanelSoul(_ComicControlScraper):
+class ThreePanelSoul(ComicControlScraper):
     url = 'http://threepanelsoul.com/'
     firstStripUrl = url + 'comic/a-test-comic'
 
@@ -280,32 +295,14 @@ class TinyDickAdventures(_ParserScraper):
         return page + '.' + ext
 
 
-class ToonHole(_WordPressScraper):
-    url = 'http://toonhole.com/'
-    firstStripUrl = url + 'comic/toon-hole-coming-soon-2010/'
-
-    def shouldSkipUrl(self, url, data):
-        return url in (self.url + "comic/if-game-of-thrones-was-animated/",)
-
-
-class TracesOfThePast(_WPNaviIn):
-    baseUrl = 'http://rickgriffinstudios.com/'
-    url = baseUrl + 'in-the-new-age/'
-    stripUrl = baseUrl + 'comic-post/%s/'
-    firstStripUrl = stripUrl % 'totp-page-1'
-    latestSearch = '//a[contains(@title, "Permanent Link")]'
+class ToonHole(ParserScraper):
+    url = 'https://toonhole.com/'
+    firstStripUrl = url + '2010/01/smart-questions-get-smart-answers/'
+    imageSearch = '//img[d:class("wp-post-image")]'
+    prevSearch = '//a[@rel="prev"]'
+    latestSearch = '//a[@rel="bookmark"]'
     starter = indirectStarter
-
-
-class TracesOfThePastNSFW(_WPNaviIn):
-    name = 'TracesOfThePast/NSFW'
-    baseUrl = 'http://rickgriffinstudios.com/'
-    url = baseUrl + 'in-the-new-age/'
-    stripUrl = baseUrl + 'comic-post/%s/'
-    firstStripUrl = stripUrl % 'totp-page-1-nsfw'
-    latestSearch = '//a[contains(@title, "NSFW")]'
-    starter = indirectStarter
-    adult = True
+    namer = joinPathPartsNamer((), (-3, -2, -1))
 
 
 class TrippingOverYou(_BasicScraper):
@@ -317,7 +314,7 @@ class TrippingOverYou(_BasicScraper):
     help = 'Index format: stripname'
 
 
-class TumbleDryComics(_WordPressScraper):
+class TumbleDryComics(WordPressScraper):
     url = 'https://www.tumbledrycomics.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'we-need-to-get-high-jpg'
@@ -365,7 +362,7 @@ class Turnoff(_ParserScraper):
         return "%03d-%s" % (index, file_name)
 
 
-class TwinDragons(_WordPressScraper):
+class TwinDragons(WordPressScraper):
     url = 'http://www.twindragonscomic.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'the-beginning'

@@ -1,17 +1,15 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
 # Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2021 Tobias Gruetzmacher
+# Copyright (C) 2015-2022 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 from re import compile, escape, IGNORECASE, sub
 from os.path import splitext
 
-from requests.exceptions import HTTPError
-
-from ..scraper import _BasicScraper, _ParserScraper
+from ..scraper import _BasicScraper, _ParserScraper, ParserScraper
 from ..helpers import indirectStarter, bounceStarter, joinPathPartsNamer
 from ..util import tagre
-from .common import _ComicControlScraper, _WordPressScraper, _WPNavi, _WPNaviIn, _WPWebcomic
+from .common import ComicControlScraper, WordPressScraper, WordPressNavi, WordPressWebcomic
 
 
 class SabrinaOnline(_BasicScraper):
@@ -35,18 +33,21 @@ class SabrinaOnline(_BasicScraper):
         return archivepages[-1]
 
 
-class SafelyEndangered(_WPNavi):
+class SafelyEndangered(WordPressNavi):
     url = 'http://www.safelyendangered.com/'
     firstStripUrl = url + 'comic/ignored/'
 
 
-class SaffronAndSage(_WordPressScraper):
+class SaffronAndSage(WordPressScraper):
     url = 'https://www.saffroncomic.com/'
     firstStripUrl = url + 'comic/p0001/'
 
 
-class SailorsunOrg(_WordPressScraper):
-    url = 'http://sailorsun.org/'
+class SailorsunOrg(WordPressScraper):
+    url = 'https://sailorsun.org/'
+
+    def shouldSkipUrl(self, url, data):
+        return 'sailorsun-org-credits' in url  # video
 
 
 class SamAndFuzzy(_ParserScraper):
@@ -58,16 +59,15 @@ class SamAndFuzzy(_ParserScraper):
     help = 'Index format: n (unpadded)'
 
 
-class SandraOnTheRocks(_BasicScraper):
-    url = 'http://www.sandraontherocks.com/'
-    stripUrl = url + 'strips-sotr/%s'
-    firstStripUrl = stripUrl % 'start_by_running'
-    imageSearch = compile(tagre("img", "src", r'([^"]*/comics/[^"]+)'))
-    prevSearch = compile(tagre("a", "href", r'([^"]*/strips-sotr/[^"]+)', before="cn[id]prev"))
+class SandraOnTheRocks(ComicControlScraper):
+    url = 'https://pixietrixcomix.com/sandra-on-the-rocks/'
+    stripUrl = url + '%s'
+    firstStripUrl = stripUrl % 'start-by-running'
+    endOfLife = True
     help = 'Index format: name'
 
 
-class Savestate(_WPNavi):
+class Savestate(WordPressNavi):
     url = 'http://www.savestatecomic.com/'
     stripUrl = url + '%s'
     firstStripUrl = stripUrl % '2014/02/pokemon-bank'
@@ -156,13 +156,6 @@ class Science(_ParserScraper):
     endOfLife = True
 
 
-class SeelPeel(_WPNaviIn):
-    url = 'https://seelpeel.com/'
-    stripUrl = url + 'comic/%s/'
-    firstStripUrl = stripUrl % 'seelpeel-goes-live'
-    multipleImagesPerStrip = True
-
-
 class SequentialArt(_ParserScraper):
     url = 'https://www.collectedcurios.com/sequentialart.php'
     stripUrl = url + '?s=%s'
@@ -199,7 +192,7 @@ class ShadesOfGray(_ParserScraper):
         return pageUrl.rstrip('/').rsplit('/', 1)[-1]
 
 
-class Sharksplode(_WordPressScraper):
+class Sharksplode(WordPressScraper):
     url = 'http://sharksplode.com/'
     textSearch = '//div[@id="comic"]//img/@alt'
     allow_errors = (403,)
@@ -216,7 +209,13 @@ class Sheldon(_BasicScraper):
     help = 'Index format: yymmdd'
 
 
-class ShipInABottle(_WordPressScraper):
+class Shifters(WordPressNavi):
+    url = 'http://shiftersonline.com/'
+    stripUrl = url + '%s/'
+    firstStripUrl = stripUrl % 'shifters-redux-promo'
+
+
+class ShipInABottle(WordPressScraper):
     url = 'http://shipinbottle.pepsaga.com/'
     stripUrl = url + '?p=%s'
     firstStripUrl = stripUrl % '281'
@@ -233,45 +232,52 @@ class Shortpacked(_ParserScraper):
     help = 'Index format: nnn'
 
 
-class ShotgunShuffle(_WordPressScraper):
+class ShotgunShuffle(WordPressScraper):
     url = 'http://shotgunshuffle.com/'
     firstStripUrl = url + 'comic/pilot/'
 
 
-class SinFest(_ParserScraper):
-    url = 'https://www.sinfest.net/'
+class SinFest(ParserScraper):
+    END_HTML_TAG = compile(r'</html>')
+
+    url = 'https://sinfest.xyz/'
     stripUrl = url + 'view.php?date=%s'
     firstStripUrl = stripUrl % '2000-01-17'
     imageSearch = '//img[contains(@src, "btphp/comics/")]'
     textSearch = imageSearch + '/@alt'
-    prevSearch = '//a[./img[contains(@src, "images/prev")]]'
+    prevSearch = '//a[d:class("prev")]'
     help = 'Index format: yyyy-mm-dd'
 
+    # Remove HTML end tag confusing our parser
+    def _parse_page(self, data):
+        data = self.END_HTML_TAG.sub('', data)
+        return super()._parse_page(data)
 
-class SisterClaire(_ComicControlScraper):
+
+class SisterClaire(ComicControlScraper):
     url = 'https://www.sisterclaire.com/comic/'
     firstStripUrl = url + 'book-one'
 
 
-class SixGunMage(_ComicControlScraper):
+class SixGunMage(ComicControlScraper):
     url = 'http://www.6gunmage.com/comic/'
     stripUrl = url + '%s'
     firstStripUrl = stripUrl % '6-gun-mage-kickoff'
 
 
-class SixPackOfOtters(_WPWebcomic):
+class SixPackOfOtters(WordPressWebcomic):
     url = 'http://sixpackofotters.com/'
     stripUrl = url + 'pages/%s/'
     firstStripUrl = stripUrl % 'chapter-01-tandem'
 
 
-class SkinDeep(_WPWebcomic):
+class SkinDeep(WordPressWebcomic):
     url = 'http://www.skindeepcomic.com/'
     stripUrl = url + 'archive/%s/'
     firstStripUrl = stripUrl % 'issue-1-cover'
 
 
-class SleeplessDomain(_ComicControlScraper):
+class SleeplessDomain(ComicControlScraper):
     url = 'http://www.sleeplessdomain.com/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % 'chapter-1-cover'
@@ -281,7 +287,7 @@ class SleeplessDomain(_ComicControlScraper):
         return pageUrl.rsplit('/', 1)[-1] + '.' + imageUrl.rsplit('.', 1)[-1]
 
 
-class SlightlyDamned(_ComicControlScraper):
+class SlightlyDamned(ComicControlScraper):
     url = 'http://www.sdamned.com/'
     firstStripUrl = url + 'comic/prologue'
 
@@ -311,11 +317,11 @@ class SluggyFreelance(_ParserScraper):
         return imageurl.rsplit('/', 1)[-1].split('.pagespeed', 1)[0]
 
 
-class SMBC(_ComicControlScraper):
+class SMBC(ComicControlScraper):
     url = 'https://www.smbc-comics.com/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % '2002-09-05'
-    imageSearch = ['//img[@id="cc-comic"]', '//div[@id="aftercomic"]/img']
+    imageSearch = ('//img[@id="cc-comic"]', '//div[@id="aftercomic"]/img')
     textSearch = '//img[@id="cc-comic"]/@title'
     multipleImagesPerStrip = True
 
@@ -329,7 +335,7 @@ class SMBC(_ComicControlScraper):
         return filename
 
 
-class SnowFlame(_WordPressScraper):
+class SnowFlame(WordPressScraper):
     url = ('https://web.archive.org/web/20160905071051/'
         'http://www.snowflamecomic.com/')
     stripUrl = url + '?comic=snowflame-%s-%s'
@@ -350,70 +356,10 @@ class SnowFlame(_WordPressScraper):
         return "%s-%s-%s" % (chapter, page, filename)
 
 
-class SodiumEyes(_WordPressScraper):
+class SodiumEyes(WordPressScraper):
     url = 'https://web.archive.org/web/20200220041406/http://sodiumeyes.com/'
     starter = indirectStarter
     endOfLife = True
-
-
-class SoloLeveling(_ParserScraper):
-    url = 'https://w3.sololeveling.net/'
-    stripUrl = url + 'manga/solo-leveling-chapter-%s/'
-    firstStripUrl = stripUrl % '1'
-    imageSearch = '//div[@class="img_container"]//img'
-    prevSearch = '//a[@rel="prev"]'
-    latestSearch = '//table[@class="chap_tab"]//a'
-    starter = indirectStarter
-    multipleImagesPerStrip = True
-    imageUrlFixes = {
-        '94-0_5dd574efda419/28.': '94-0_5dd574efda419/28a.',
-        '92-0_5dc2fcb9ed562/22.': '92-0_5dc2fcb9ed562/22s.',
-        '91-0_5db9b881ac2f0/20k.': '91-0_5db9b881ac2f0/20l.',
-        '91-0_5db9b881ac2f0/23.': '91-0_5db9b881ac2f0/23a.',
-        '90-0_5db08467ca2b1/07.': '90-0_5db08467ca2b1/07a.',
-        '90-0_5db08467ca2b1/09.': '90-0_5db08467ca2b1/09a.',
-        '90-0_5db08467ca2b1/13.': '90-0_5db08467ca2b1/13a.',
-        '90-0_5db08467ca2b1/14.': '90-0_5db08467ca2b1/14a.',
-        '90-0_5db08467ca2b1/21.': '90-0_5db08467ca2b1/21a.',
-        '90-0_5db08467ca2b1/22.': '90-0_5db08467ca2b1/22a.',
-        '88-0_5d9e0dedb942e/03.': '88-0_5d9e0dedb942e/03b.',
-        '88-0_5d9e0dedb942e/05.': '88-0_5d9e0dedb942e/05a.',
-        '88-0_5d9e0dedb942e/30.': '88-0_5d9e0dedb942e/30a.',
-        '87-0_5d94cdebd9df7/01a.': '87-0_5d94cdebd9df7/01c.',
-    }
-
-    def imageUrlModifier(self, imageUrl, data):
-        if 'url=' in imageUrl:
-            imageUrl = imageUrl.split('url=')[1].split('&')[0]
-        for fix in self.imageUrlFixes:
-            imageUrl = imageUrl.replace(fix, self.imageUrlFixes[fix])
-        return imageUrl
-
-    def fetchUrls(self, url, data, urlSearch):
-        # Save link order for position-based filenames
-        self.imageUrls = super(SoloLeveling, self).fetchUrls(url, data, urlSearch)
-        self.imageUrls = [self.imageUrlModifier(x, data) for x in self.imageUrls]
-        return self.imageUrls
-
-    def getPage(self, url):
-        try:
-            return super().getPage(url)
-        except HTTPError as e:
-            # CloudFlare WAF
-            if e.response.status_code == 403 and '1020' in e.response.text:
-                self.geoblocked()
-            else:
-                raise e
-
-    def getPrevUrl(self, url, data):
-        return self.stripUrl % str(int(url.strip('/').rsplit('-', 1)[-1]) - 1)
-
-    def namer(self, imageUrl, pageUrl):
-        # Construct filename from episode number and image position on page
-        episodeNum = pageUrl.strip('/').rsplit('-', 1)[-1]
-        imageNum = self.imageUrls.index(imageUrl)
-        imageExt = imageUrl.rsplit('.', 1)[-1]
-        return "%s-%03d.%s" % (episodeNum, imageNum, imageExt)
 
 
 class SomethingPositive(_ParserScraper):
@@ -426,7 +372,7 @@ class SomethingPositive(_ParserScraper):
     help = 'Index format: mmddyyyy'
 
 
-class Sorcery101(_WPWebcomic):
+class Sorcery101(WordPressWebcomic):
     baseUrl = 'https://kelmcdonald.com/sorcery-101/'
     stripUrl = baseUrl + '%s/'
     url = stripUrl % 'sorcery101-ch-01'
@@ -490,11 +436,11 @@ class SpareParts(_BasicScraper):
     help = 'Index format: yyyymmdd'
 
 
-class Spinnerette(_ComicControlScraper):
+class Spinnerette(ComicControlScraper):
     url = 'http://www.spinnyverse.com'
 
 
-class SPQRBlues(_WordPressScraper):
+class SPQRBlues(WordPressScraper):
     url = 'http://spqrblues.com/IV/'
 
 
@@ -581,7 +527,7 @@ class StarCrossdDestiny(_ParserScraper):
         return directory + '-' + filename
 
 
-class StarfireAgency(_WPWebcomic):
+class StarfireAgency(WordPressWebcomic):
     url = 'https://poecatcomix.com/starfire-agency-static/'
     stripUrl = 'https://poecatcomix.com/starfire-agency/%s/'
     firstStripUrl = stripUrl % '2005-09-201'
@@ -607,7 +553,7 @@ class StarfireAgency(_WPWebcomic):
         return filename
 
 
-class StarTrip(_ComicControlScraper):
+class StarTrip(ComicControlScraper):
     url = 'https://www.startripcomic.com/'
 
 
@@ -620,21 +566,17 @@ class StationV3(_ParserScraper):
     help = 'Index format: yyyymmdd'
 
 
-class StickyDillyBuns(_BasicScraper):
-    url = 'http://www.stickydillybuns.com/'
-    stripUrl = url + 'strips-sdb/%s'
-    firstStripUrl = stripUrl % 'awesome_leading_man'
-    imageSearch = compile(tagre("img", "src", r'([^"]*/comics/[^"]+)'))
-    prevSearch = compile(tagre("a", "href", r'([^"]*/strips-sdb/[^"]+)',
-                               before="cn[id]prev"))
-    help = 'Index format: name'
+class StickyDillyBuns(ComicControlScraper):
+    url = 'https://pixietrixcomix.com/sticky-dilly-buns/'
+    firstStripUrl = url + 'awesome-leading-man'
+    endOfLife = True
 
 
-class StreetFighter(_ComicControlScraper):
+class StreetFighter(ComicControlScraper):
     url = 'http://www.streetfightercomics.com'
 
 
-class StringTheory(_WPNavi):
+class StringTheory(WordPressNavi):
     url = 'http://www.stringtheorycomic.com/'
     firstStripUrl = url + 'comics/chapterone/chapterone/'
 
@@ -659,6 +601,19 @@ class StrongFemaleProtagonist(_ParserScraper):
         )
 
 
+class StupidFox(_ParserScraper):
+    url = 'http://stupidfox.net/'
+    stripUrl = url + '%s'
+    firstStripUrl = stripUrl % 'hello'
+    imageSearch = '//div[@class="comicmid"]//img'
+    prevSearch = '//a[@accesskey="p"]'
+
+    def namer(self, imageUrl, pageUrl):
+        page = self.getPage(pageUrl)
+        title = page.xpath(self.imageSearch + '/@title')[0].replace(' - ', '-').replace(' ', '-')
+        return title + '.' + imageUrl.rsplit('.', 1)[-1]
+
+
 class SuburbanJungle(_ParserScraper):
     url = 'http://suburbanjungleclassic.com/'
     stripUrl = url + '?p=%s'
@@ -667,21 +622,22 @@ class SuburbanJungle(_ParserScraper):
     prevSearch = '//div[@class="nav-previous"]/a'
 
 
-class SuburbanJungleRoughHousing(_WordPressScraper):
+class SuburbanJungleRoughHousing(WordPressScraper):
     url = 'http://roughhouse.suburbanjungle.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'rough-housing-issue-1-cover'
 
 
 class Supercell(_ParserScraper):
-    url = 'https://www.supercellcomic.com/'
-    stripUrl = url + 'pages/%s.html'
+    baseUrl = 'https://www.supercellcomic.com/'
+    url = baseUrl + 'latest.html'
+    stripUrl = baseUrl + 'pages/%s.html'
     firstStripUrl = stripUrl % '0001'
     imageSearch = '//img[@class="comicStretch"]'
     prevSearch = '//div[@class="comicnav"]/a[./img[contains(@src, "comnav_02")]]'
 
 
-class SupernormalStep(_ComicControlScraper):
+class SupernormalStep(ComicControlScraper):
     url = 'http://supernormalstep.com/'
 
 
@@ -706,6 +662,6 @@ class SwordsAndSausages(_ParserScraper):
     url = 'https://www.tigerknight.com/ss'
     stripUrl = url + '/%s'
     firstStripUrl = stripUrl % '1-1'
-    imageSearch = '//img[@class="comic-image"]'
+    imageSearch = '//img[d:class("comic-image")]'
     prevSearch = '//a[./span[contains(text(), "Previous")]]'
     multipleImagesPerStrip = True

@@ -1,14 +1,15 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
 # Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2021 Tobias Gruetzmacher
+# Copyright (C) 2015-2022 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 from re import compile, escape
+from typing import List
 
 from ..scraper import _BasicScraper, _ParserScraper
-from ..helpers import bounceStarter, indirectStarter
+from ..helpers import bounceStarter, indirectStarter, joinPathPartsNamer
 from ..util import tagre
-from .common import _WordPressScraper, _WPNavi, _WPWebcomic
+from .common import WordPressScraper, WordPressNavi, WordPressWebcomic
 
 
 class CampComic(_ParserScraper):
@@ -124,7 +125,7 @@ class CatAndGirl(_ParserScraper):
     prevSearch = '//a[d:class("pager--prev")]'
 
 
-class CatenaCafe(_WordPressScraper):
+class CatenaCafe(WordPressScraper):
     name = 'CatenaManor/CatenaCafe'
     url = 'https://catenamanor.com/'
     stripUrl = url + 'comic/%s/'
@@ -140,7 +141,7 @@ class CatenaManor(_ParserScraper):
     imageSearch = '//img[@class="comicthumbnail"]'
     multipleImagesPerStrip = True
     endOfLife = True
-    strips = []
+    strips: List[str] = []
 
     def starter(self):
         # Retrieve archive links and select valid range
@@ -160,21 +161,20 @@ class CatenaManor(_ParserScraper):
         return self.strips.pop(0)
 
 
-class CatNine(_WordPressScraper):
-    url = 'http://classic.cat-nine.net/'
-    stripUrl = url + 'comic/%s'
-    firstStripUrl = stripUrl % 'day-first'
+class CatNine(WordPressScraper):
+    url = 'https://classic.cat-nine.net/'
+    firstStripUrl = url + 'comic/day-first'
+    imageSearch = '//div[@id="comic"]//img/@data-src-img'
     endOfLife = True
 
 
-class CatNineTakeTwo(CatNine):
+class CatNineTakeTwo(WordPressScraper):
     name = 'CatNine/TakeTwo'
-    url = 'http://cat-nine.net/'
-    stripUrl = url + 'comic/%s/'
-    firstStripUrl = stripUrl % 'episode-1/1-first-day-for-everything'
+    url = 'https://cat-nine.net/'
+    firstStripUrl = url + 'comic/episode-1/1-first-day-for-everything/'
 
 
-class CatsAndCameras(_WordPressScraper):
+class CatsAndCameras(WordPressScraper):
     url = 'https://catsncameras.com/cnc/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % 'cnc-begins'
@@ -189,17 +189,20 @@ class CatVersusHuman(_ParserScraper):
     starter = indirectStarter
 
 
-class CavesAndCritters(_WPWebcomic):
+class CavesAndCritters(WordPressWebcomic):
     url = 'https://cavesandcritters.com/?ao_confirm'
     stripUrl = 'https://cavesandcritters.com/cnc_webcomic/%s/'
     firstStripUrl = stripUrl % '01_000'
     adult = True
 
 
-class Centralia2050(_WordPressScraper):
-    url = 'http://centralia2050.com/'
+class Centralia2050(_ParserScraper):
+    url = 'https://centralia2050.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'ch1cover'
+    imageSearch = '//div[@id="spliced-comic"]//img'
+    prevSearch = '//a[@class="previous-comic"]'
+    nextSearch = '//a[@class="next-comic"]'
     starter = bounceStarter
 
     def namer(self, imageUrl, pageUrl):
@@ -210,7 +213,7 @@ class Centralia2050(_WordPressScraper):
         return page + '.' + ext
 
 
-class ChannelAte(_WPNavi):
+class ChannelAte(WordPressNavi):
     url = 'http://www.channelate.com/'
 
 
@@ -223,7 +226,7 @@ class ChasingTheSunset(_BasicScraper):
     help = 'Index format: n'
 
 
-class Chester5000XYV(_WordPressScraper):
+class Chester5000XYV(WordPressScraper):
     url = 'http://jessfink.com/Chester5000XYV/'
     stripUrl = url + '?p=%s'
     firstStripUrl = stripUrl % '34'
@@ -238,7 +241,7 @@ class Chester5000XYV(_WordPressScraper):
         return tourl
 
 
-class Chisuji(_WordPressScraper):
+class Chisuji(WordPressScraper):
     url = 'http://www.chisuji.com/'
     stripUrl = url + '?p=%s'
     firstStripUrl = stripUrl % '266'
@@ -254,7 +257,7 @@ class CigarroAndCerveja(_ParserScraper):
     prevSearch = '//a[contains(text()," Prev")]'
 
 
-class ClanOfTheCats(_WordPressScraper):
+class ClanOfTheCats(WordPressScraper):
     url = 'http://www.cotclassic.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'coming-home-2'
@@ -264,7 +267,7 @@ class ClanOfTheCats(_WordPressScraper):
         return tourl.replace('/2954/', '/2002-06-22/')
 
 
-class ClanOfTheCatsReunion(_WordPressScraper):
+class ClanOfTheCatsReunion(WordPressScraper):
     name = 'ClanOfTheCats/Reunion'
     url = 'http://www.clanofthecats.com/'
     stripUrl = url + 'comic/%s/'
@@ -275,9 +278,9 @@ class Cloudscratcher(_ParserScraper):
     url = 'http://www.cloudscratcher.com/'
     stripUrl = url + 'comic.php?page=%s'
     firstStripUrl = stripUrl % '1'
-    imageSearch = '//div[@id="main_content"]//img[contains(@src, "comic")]'
-    prevSearch = '//a[./img[contains(@src, "previous-page")]]'
-    latestSearch = '//a[@alt="Newest_Page"]'
+    imageSearch = '//img[contains(@src, "pages/")]'
+    prevSearch = '//a[./img[@alt="Previous Page"]]'
+    latestSearch = '//a[./img[@alt="Comic"]]'
     starter = indirectStarter
 
 
@@ -285,7 +288,7 @@ class CollegeCatastrophe(_ParserScraper):
     url = 'https://www.tigerknight.com/cc'
     stripUrl = url + '/%s'
     firstStripUrl = stripUrl % '2000-11-10'
-    imageSearch = '//img[@class="comic-image"]'
+    imageSearch = '//img[d:class("comic-image")]'
     prevSearch = '//a[./span[contains(text(), "Previous")]]'
     endOfLife = True
     multipleImagesPerStrip = True
@@ -300,7 +303,7 @@ class Comedity(_BasicScraper):
     help = 'Index format: n (no padding)'
 
 
-class CommanderKitty(_WPNavi):
+class CommanderKitty(WordPressNavi):
     url = 'http://www.commanderkitty.com/'
     stripUrl = url + '%s/'
     firstStripUrl = stripUrl % '2009/01/03/good-to-be-back'
@@ -363,13 +366,13 @@ class CorydonCafe(_ParserScraper):
     multipleImagesPerStrip = True
 
 
-class CourtingDisaster(_WordPressScraper):
+class CourtingDisaster(WordPressScraper):
     url = 'https://web.archive.org/web/20201127150157/http://www.courting-disaster.com/'
     firstStripUrl = 'http://www.courting-disaster.com/comic/courting-disaster-17/'
     endOfLife = True
 
 
-class CraftedFables(_WordPressScraper):
+class CraftedFables(WordPressScraper):
     url = 'https://web.archive.org/web/20191126025641/http://www.caf-fiends.net/comicpress/'
     prevSearch = '//a[@rel="prev"]'
     endOfLife = True
@@ -392,7 +395,7 @@ class CrimsonFlag(_ParserScraper):
     prevSearch = '//a[contains(@class, "prev")]'
 
 
-class CritterCoven(_WordPressScraper):
+class CritterCoven(WordPressScraper):
     url = 'http://crittercoven.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'critter-coven'
@@ -408,7 +411,14 @@ class CrossTimeCafe(_ParserScraper):
     endOfLife = True
 
 
-class CucumberQuest(_WPWebcomic):
+class CSectionComics(WordPressScraper):
+    url = 'https://www.csectioncomics.com/'
+    firstStripUrl = url + 'comics/one-day-in-country'
+    namer = joinPathPartsNamer((), (-3, -2, -1))
+    multipleImagesPerStrip = True
+
+
+class CucumberQuest(WordPressWebcomic):
     baseUrl = 'http://cucumber.gigidigi.com/'
     stripUrl = baseUrl + 'cq/%s/'
     firstStripUrl = stripUrl % 'page-1'
@@ -417,7 +427,7 @@ class CucumberQuest(_WPWebcomic):
     help = 'Index format: stripname'
 
 
-class Curtailed(_WordPressScraper):
+class Curtailed(WordPressScraper):
     url = 'https://www.curtailedcomic.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % '001-sneeze'

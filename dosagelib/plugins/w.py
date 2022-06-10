@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
 # Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2020 Tobias Gruetzmacher
+# Copyright (C) 2015-2022 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
 from re import compile, escape, IGNORECASE
 
 from ..scraper import _BasicScraper, _ParserScraper
 from ..util import tagre
 from ..helpers import bounceStarter
-from .common import _ComicControlScraper, _WPNavi, _WPNaviIn, _WPWebcomic
+from .common import ComicControlScraper, WordPressScraper, WordPressNaviIn, WordPressWebcomic
 
 
-class WapsiSquare(_WPNaviIn):
+class WapsiSquare(WordPressNaviIn):
     url = 'http://wapsisquare.com/'
     firstStripUrl = url + 'comic/09092001/'
 
@@ -81,14 +81,14 @@ class WereIWolf(_ParserScraper):
         return self.stripUrl % (index[0], index[1])
 
 
-class WhiteNoise(_WPWebcomic):
+class WhiteNoise(WordPressWebcomic):
     url = 'http://whitenoisecomic.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'book-one'
     imageSearch = '//div[@id="comic"]//img'
 
 
-class WhiteNoiseLee(_ComicControlScraper):
+class WhiteNoiseLee(ComicControlScraper):
     url = 'http://www.white-noise-comic.com/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % '1-0'
@@ -98,7 +98,7 @@ class WhiteNoiseLee(_ComicControlScraper):
         return pageUrl.rsplit('/', 1)[-1] + '.' + imageUrl.rsplit('.', 1)[-1]
 
 
-class Whomp(_ComicControlScraper):
+class Whomp(ComicControlScraper):
     url = 'http://www.whompcomic.com/'
     firstStripUrl = url + 'comic/06152010'
     textSearch = '//img[@id="cc-comic"]/@title'
@@ -117,6 +117,16 @@ class WhyTheLongFace(_BasicScraper):
     help = 'Index format: yyyymm'
 
 
+class Widdershins(ComicControlScraper):
+    url = 'https://widdershinscomic.com/'
+    stripUrl = url + 'wdshn/%s'
+    firstStripUrl = stripUrl % 'sleight-of-hand-cover'
+    starter = bounceStarter
+
+    def namer(self, imageUrl, pageUrl):
+        return pageUrl.rsplit('/', 1)[-1] + '.' + imageUrl.rsplit('.', 1)[-1]
+
+
 class Wigu(_ParserScraper):
     stripUrl = 'http://www.wigucomics.com/adventures/index.php?comic=%s'
     url = stripUrl % '-1'
@@ -127,18 +137,15 @@ class Wigu(_ParserScraper):
     help = 'Index format: n'
 
 
-class WildeLife(_ComicControlScraper):
+class WildeLife(ComicControlScraper):
     url = 'http://www.wildelifecomic.com/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % '1'
 
 
-class WintersLight(_ParserScraper):
-    url = 'https://winterslight.anaria.net/'
-    stripUrl = url + 'comic/%s'
-    firstStripUrl = stripUrl % 'winterslight00'
-    imageSearch = '//img[contains(@src, "comic/pages/")]'
-    prevSearch = '//a[contains(text(), "Previous")]'
+class Wolfpac(WordPressScraper):
+    url = 'https://wolfpac.ca/'
+    firstStripUrl = url + 'archives/comic/wolfpac-title'
 
 class Witchy(_ParserScraper):
     url = 'http://witchycomic.com/'
@@ -162,13 +169,12 @@ class Wonderella(_BasicScraper):
     help = 'Index format: yyyy/mm/dd/name'
 
 
-class Wondermark(_BasicScraper):
+class Wondermark(WordPressScraper):
     url = 'http://wondermark.com/'
     stripUrl = url + '%s/'
     firstStripUrl = stripUrl % '001'
-    imageSearch = compile(r'<img src="(http://wondermark.com/c/.+?)"')
-    prevSearch = compile(r'<a href="(.+?)" rel="prev">')
-    help = 'Index format: nnn'
+    prevSearch = '//a[@rel="prev"]'
+    help = 'Index format: nnn (001-999), 1knn (1000-1099), cnnnn (1100-)'
 
 
 class WorldOfMrToast(_BasicScraper):
@@ -240,9 +246,3 @@ class WormWorldSagaGerman(WormWorldSaga):
 
 class WormWorldSagaSpanish(WormWorldSaga):
     lang = 'es'
-
-
-class Wrongside(_WPNavi):
-    url = 'http://www.ayzewi.com/comic/'
-    stripUrl = url + '?comic=%s'
-    firstStripUrl = stripUrl % 'intro-2'

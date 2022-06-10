@@ -8,7 +8,7 @@ from re import compile, escape
 from ..util import tagre
 from ..scraper import _BasicScraper, _ParserScraper
 from ..helpers import indirectStarter, joinPathPartsNamer
-from .common import _ComicControlScraper, _WPNaviIn, _WordPressScraper
+from .common import ComicControlScraper, WordPressNaviIn, WordPressScraper
 
 
 class FalconTwin(_BasicScraper):
@@ -21,15 +21,24 @@ class FalconTwin(_BasicScraper):
 
 
 class FalseStart(_ParserScraper):
-    url = 'https://boneitiscomics.com/falsestart.php'
-    stripUrl = url + '?pg=%s'
-    firstStripUrl = stripUrl % '1'
-    imageSearch = '//div[@class="page"]//img'
-    prevSearch = '//a[@id="prev"]'
+    baseUrl = 'https://boneitisindustries.com/'
+    url = baseUrl + 'comics/false-start/'
+    stripUrl = baseUrl + 'comic/%s/'
+    firstStripUrl = stripUrl % 'false-start-chapter-zero-page-1'
+    imageSearch = '//div[@id="content"]//img[d:class("size-full")]'
+    prevSearch = '//a[./span[d:class("ticon-chevron-left")]]'
     adult = True
 
+    def starter(self):
+        archivePage = self.getPage(self.url)
+        self.archive = archivePage.xpath('//div[contains(@class, "vcex-portfolio-grid")]//a/@href')
+        return self.archive[-1]
 
-class Faneurysm(_WPNaviIn):
+    def getPrevUrl(self, url, data):
+        return self.archive[self.archive.index(url) - 1]
+
+
+class Faneurysm(WordPressNaviIn):
     url = 'http://hijinksensue.com/comic/think-only-tree/'
     firstStripUrl = 'http://hijinksensue.com/comic/captains-prerogative/'
     endOfLife = True
@@ -46,7 +55,7 @@ class FantasyRealms(_ParserScraper):
     help = 'Index format: nnn'
 
 
-class FarToTheNorth(_ComicControlScraper):
+class FarToTheNorth(ComicControlScraper):
     url = 'http://www.farnorthcomic.com/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % 'don39t-tell'
@@ -61,7 +70,7 @@ class FauxPas(_ParserScraper):
     help = 'Index format: nnn'
 
 
-class FireflyCross(_WordPressScraper):
+class FireflyCross(WordPressScraper):
     url = 'http://www.fireflycross.pensandtales.com/'
     firstStripUrl = url + '?comic=05062002'
 
@@ -126,7 +135,7 @@ class FonFlatter(_ParserScraper):
         )
 
 
-class ForestHill(_WordPressScraper):
+class ForestHill(WordPressScraper):
     url = 'https://www.foresthillcomic.org/'
 
 
@@ -144,7 +153,7 @@ class FoxDad(_ParserScraper):
     url = 'https://foxdad.com/'
     stripUrl = url + 'post/%s'
     firstStripUrl = stripUrl % '149683014997/some-people-are-just-different-support-the-comic'
-    imageSearch = '//figure[@class="photo-hires-item"]//img'
+    imageSearch = ('//figure[@class="photo-hires-item"]//img', '//figure[@class="tmblr-full"]//img')
     prevSearch = '//a[@class="previous-button"]'
 
     def namer(self, imageUrl, pageUrl):
@@ -217,7 +226,7 @@ class FreighterTails(_ParserScraper):
     endOfLife = True
 
 
-class FriendsYouAreStuckWith(_WordPressScraper):
+class FriendsYouAreStuckWith(WordPressScraper):
     url = 'http://friendsyasw.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'wanted'
@@ -238,7 +247,7 @@ class FullFrontalNerdity(_BasicScraper):
     help = 'Index format: number'
 
 
-class FunInJammies(_WordPressScraper):
+class FunInJammies(WordPressScraper):
     url = ('https://web.archive.org/web/20170205105241/'
         'http://funinjammies.com/')
     stripUrl = url + 'comic.php?issue=%s'
