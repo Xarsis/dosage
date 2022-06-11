@@ -172,20 +172,10 @@ class HtmlEventHandler(EventHandler):
         fn = os.path.join(self.basepath, 'html', fn + ".html")
         return os.path.abspath(fn)
 
-    def fnFromDateCK(self, date):
-        """Get filename from date."""
-        fn = time.strftime('comics-%Y%m%d', date)
-        fn = os.path.join(self.basepath, 'html', fn + "-1.html")
-        return os.path.abspath(fn)
-
     def addNavLinks(self):
         self.html.write(u'<div class="navlink">')
         if self.yesterdayUrl:
             self.html.write(u'<a href="%s">Previous Day</a> | ' % self.yesterdayUrl)
-        self.ckPage = self.fnFromDateCK(self.today)
-        if os.path.exists(ckPage):
-            self.html.write(u'<a href="%s">Today\'s ComicsKingdom</a> | ' % self.ckPage)
-            self.html.write(u'<a href="%s">Today\'s Other Comics</a> | ' % self.fn)
         self.html.write(u'<a href="%s">Next Day</a></div>\n' % self.tomorrowUrl)
 
 
@@ -194,11 +184,11 @@ class HtmlEventHandler(EventHandler):
         today = time.time()
         yesterday = today - 86400
         tomorrow = today + 86400
-        self.today = time.localtime(today)
+        today = time.localtime(today)
         yesterday = time.localtime(yesterday)
         tomorrow = time.localtime(tomorrow)
 
-        fn = self.fnFromDate(self.today)
+        fn = self.fnFromDate(today)
         if os.path.exists(fn):
             out.warn('HTML output file %r already exists' % fn)
             out.warn('the page link of previous run will skip this file')
@@ -228,7 +218,7 @@ class HtmlEventHandler(EventHandler):
 <noscript><link rel="stylesheet" href="comics.css"></noscript>
 </head>
 <body>
-''' % (self.encoding, configuration.App, time.strftime('%Y/%m/%d', self.today)))
+''' % (self.encoding, configuration.App, time.strftime('%Y/%m/%d', today)))
         self.addNavLinks()
         self.html.write(u'<ul>\n')
         # last comic name (eg. CalvinAndHobbes)
