@@ -198,7 +198,7 @@ class HtmlEventHandler(EventHandler):
         yesterday = time.localtime(yesterday)
         tomorrow = time.localtime(tomorrow)
 
-        fn = self.fnFromDate(today)
+        fn = self.fnFromDate(self.today)
         if os.path.exists(fn):
             out.warn('HTML output file %r already exists' % fn)
             out.warn('the page link of previous run will skip this file')
@@ -228,7 +228,7 @@ class HtmlEventHandler(EventHandler):
 <noscript><link rel="stylesheet" href="comics.css"></noscript>
 </head>
 <body>
-''' % (self.encoding, configuration.App, time.strftime('%Y/%m/%d', today)))
+''' % (self.encoding, configuration.App, time.strftime('%Y/%m/%d', self.today)))
         self.addNavLinks()
         self.html.write(u'<ul>\n')
         # last comic name (eg. CalvinAndHobbes)
