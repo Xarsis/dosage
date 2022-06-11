@@ -153,6 +153,13 @@ class BillyTheDunce(_ParserScraper):
     prevSearch = '//a[@rel="prev"]'
     endOfLife = True
 
+class BinwinsMinions(_ParserScraper):
+    url = 'http://tabletitans.com/binwins-minions/binwins-minions-v3-page-16'
+    stripUrl = 'http://tabletitans.com/binwins-minions/%s'
+    firstStripUrl = stripUrl % 'binwins-minions-page-1'
+    imageSearch = '//section[@class="comic row"]/img'
+    prevSearch = '//div/ul/li/a[contains(text(),"Previous")]'
+    help = 'Index format: v?-page-??'
 
 class BirdBoy(WordPressScraper):
     url = 'https://bird-boy.com/'
