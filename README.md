@@ -131,3 +131,4 @@ existing module classes for examples.
 Dosage has unit tests to ensure code quality. GitHub Actions are used for
 continuous build and test integration. See the badges at the top of this page
 for the current status.
+
