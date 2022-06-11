@@ -194,7 +194,7 @@ class HtmlEventHandler(EventHandler):
         today = time.time()
         yesterday = today - 86400
         tomorrow = today + 86400
-        today = time.localtime(today)
+        self.today = time.localtime(today)
         yesterday = time.localtime(yesterday)
         tomorrow = time.localtime(tomorrow)
 
