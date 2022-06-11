@@ -182,7 +182,7 @@ class HtmlEventHandler(EventHandler):
         self.html.write(u'<div class="navlink">')
         if self.yesterdayUrl:
             self.html.write(u'<a href="%s">Previous Day</a> | ' % self.yesterdayUrl)
-        self.ckPage = self.fnFromDateCK(today)
+        self.ckPage = self.fnFromDateCK(self.today)
         if os.path.exists(ckPage):
             self.html.write(u'<a href="%s">Today\'s ComicsKingdom</a> | ' % self.ckPage)
             self.html.write(u'<a href="%s">Today\'s Other Comics</a> | ' % self.fn)
