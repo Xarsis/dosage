@@ -3,18 +3,6 @@
 # Copyright (C) 2019 Thomas W. Littauer
 from importlib.resources import path as get_path
 
-<<<<<<< HEAD
-import re
-from ..util import tagre
-
-
-class ComicsKingdom(_BasicScraper):
-    imageSearch = re.compile(r'property="og:image" content="(https://[^"]*img\.php\?[^"]+)"')
-#   prevSearch = re.compile(r':is-left-arrow="true"[^>]*date-slug="(\d\d\d\d-\d\d-\d\d)"')
-    prevSearch = re.compile(tagre("a", "href", r'([^"]*zits/\d+-\d+-\d+)') + tagre("img", "alt", r'Previous comic'))
-#   nextSearch = re.compile(r':is-left-arrow="false"[^>]*date-slug="(\d\d\d\d-\d\d-\d\d)"')
-    nextSearch = re.compile(tagre("a", "href", r'([^"]*zits/\d+-\d+-\d+)') + tagre("img", "alt", r'Next comic'))
-=======
 from ..helpers import bounceStarter, joinPathPartsNamer
 from ..scraper import ParserScraper
 
@@ -23,20 +11,13 @@ class ComicsKingdom(ParserScraper):
     imageSearch = '//img[@id="theComicImage"]'
     prevSearch = '//a[./img[contains(@alt, "Previous")]]'
     nextSearch = '//a[./img[contains(@alt, "Next")]]'
->>>>>>> a9251bc09a3230f98372623c0b3c5c845864c0cf
     starter = bounceStarter
     namer = joinPathPartsNamer((-2, -1), ())
     help = 'Index format: yyyy-mm-dd'
 
-<<<<<<< HEAD
-    def __init__(self, name, path):
-        super(ComicsKingdom, self).__init__('ComicsKingdom/' + name)
-        self.url = 'https://comicskingdom.com//' + path + '/'
-=======
     def __init__(self, name, path, lang=None):
         super().__init__('ComicsKingdom/' + name)
         self.url = 'https://comicskingdom.com/' + path
->>>>>>> a9251bc09a3230f98372623c0b3c5c845864c0cf
         self.stripUrl = self.url + '/%s'
         if lang:
             self.lang = lang

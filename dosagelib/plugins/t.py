@@ -9,13 +9,8 @@ try:
 except ImportError:
     from cached_property import cached_property
 
-<<<<<<< HEAD
-from ..scraper import _BasicScraper, _ParserScraper
-from ..helpers import indirectStarter, bounceStarter
-=======
 from ..scraper import _BasicScraper, _ParserScraper, ParserScraper
-from ..helpers import indirectStarter, joinPathPartsNamer
->>>>>>> a9251bc09a3230f98372623c0b3c5c845864c0cf
+from ..helpers import indirectStarter, joinPathPartsNamer, bounceStarter
 from ..util import tagre
 from .common import (ComicControlScraper, WordPressScraper, WordPressSpliced,
         WordPressNavi, WordPressWebcomic)

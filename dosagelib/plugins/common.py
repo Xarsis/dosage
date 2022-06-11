@@ -53,15 +53,4 @@ class WordPressWebcomic(ParserScraper):
     prevSearch = '//a[d:class("previous-webcomic-link")]'
     nextSearch = '///a[d:class("next-webcomic-link")]'
     latestSearch = '//a[d:class("last-webcomic-link")]'
-<<<<<<< HEAD
 
-
-class _ComicControlScraper(_ParserScraper):
-    imageSearch = '//img[@id="cc-comic"]'
-    prevSearch = '//a[@rel="prev"]'
-    nextSearch = '//a[@rel="next"]'
-    latestSearch = '//a[@rel="last"]'
-    textSearch = imageSearch + '/@title'
-    textOptional = True
-=======
->>>>>>> a9251bc09a3230f98372623c0b3c5c845864c0cf

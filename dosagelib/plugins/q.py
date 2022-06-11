@@ -3,13 +3,8 @@
 # Copyright (C) 2012-2014 Bastian Kleineidam
 # Copyright (C) 2015-2022 Tobias Gruetzmacher
 # Copyright (C) 2019-2020 Daniel Ring
-<<<<<<< HEAD
-from ..scraper import _ParserScraper
 from ..helpers import bounceStarter
-=======
 from ..scraper import ParserScraper
-
->>>>>>> a9251bc09a3230f98372623c0b3c5c845864c0cf
 
 class QuantumVibe(ParserScraper):
     url = 'https://www.quantumvibe.com/'
