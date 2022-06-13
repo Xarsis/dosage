@@ -26,6 +26,8 @@ class ComicControlScraper(ParserScraper):
     prevSearch = '//a[@rel="prev"]'
     nextSearch = '//a[@rel="next"]'
     latestSearch = '//a[@rel="last"]'
+    textSearch = imageSearch + '/@title'
+    textOptional = True
 
 
 class WordPressScraper(ParserScraper):
