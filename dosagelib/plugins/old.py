@@ -28,7 +28,7 @@ class Removed(Scraper):
         return {'rem-' + self.reason: self.REASONS[self.reason]}
 
     @classmethod
-    def getmodules(cls):  # noqa: Allowed to be long
+    def getmodules(cls):  # noqa: CFQ001
         return (
             # Removed in 2.16
             cls('AbleAndBaker'),
@@ -208,8 +208,7 @@ class Removed(Scraper):
             cls('Creators/GirlsandSportsinSpanish'),
             cls('Creators/Recess'),
             cls('Creators/RugratsinSpanish'),
-            cls('CtrlAltDel', 'block'),
-            cls('CtrlAltDel/Sillies', 'block'),
+            cls('CtrlAltDel/Sillies'),
             cls('DailyDose'),
             cls('DamnLol'),
             cls('DeathToTheExtremist'),
@@ -605,6 +604,7 @@ class Removed(Scraper):
             cls('WotNow'),
 
             # Removed in 3.0
+            cls('CatenaManor/CatenaCafe'),
             cls('ComicFury/AdventuresOftheGreatCaptainMaggieandCrew'),
             cls('ComicFury/AWAKENING'),
             cls('ComicFury/Beebleville'),
@@ -833,6 +833,8 @@ class Removed(Scraper):
             cls('ComicsKingdom/Redeye'),
             cls('ComicsKingdom/RedeyeSundays'),
             cls('CrapIDrewOnMyLunchBreak'),
+            cls('FalseStart'),
+            cls('Ginpu'),
             cls('GoComics/060'),
             cls('GoComics/2CowsAndAChicken'),
             cls('GoComics/ABitSketch'),
@@ -993,9 +995,11 @@ class Removed(Scraper):
             cls('GoComics/Wrobbertcartoons'),
             cls('GoComics/Zootopia'),
             cls('JustAnotherEscape'),
+            cls('KemonoCafe/PrincessBunny'),
             cls('Laiyu', 'brk'),
             cls('MangaDex/DrStone', 'legal'),
             cls('MangaDex/HeavensDesignTeam', 'legal'),
+            cls('MangaDex/ImTheMaxLevelNewbie', 'legal'),
             cls('MangaDex/SPYxFAMILY', 'legal'),
             cls('Ryugou'),
             cls('SeelPeel'),
@@ -1569,16 +1573,21 @@ class Removed(Scraper):
             cls('SnafuComics/Tin'),
             cls('SnafuComics/Titan'),
             cls('StudioKhimera/Eorah', 'mov'),
+            cls('StudioKhimera/Mousechevious'),
             cls('StuffNoOneToldMe'),
             cls('TaleOfTenThousand'),
+            cls('TalesAndTactics'),
             cls('TheCyantianChronicles/CookieCaper'),
             cls('TheCyantianChronicles/Pawprints'),
+            cls('VampireHunterBoyfriends'),
             cls('VGCats/Adventure'),
             cls('VGCats/Super'),
             cls('VictimsOfTheSystem'),
             cls('WebDesignerCOTW'),
             cls('WebToons/Adamsville'),
             cls('WebToons/CrapIDrewOnMyLunchBreak'),
+            cls('WebToons/CrystalVirus'),
+            cls('WebToons/OVERPOWERED'),
             cls('WintersLight'),
         )
 
@@ -1601,7 +1610,7 @@ class Renamed(Scraper):
         return {'ren-%i' % self.i: self.MSG % self.newname}
 
     @classmethod
-    def getmodules(cls):  # noqa: Allowed to be long
+    def getmodules(cls):
         return (
             # Renamed in 2.16
             cls('1997', '1977'),
@@ -1680,6 +1689,10 @@ class Renamed(Scraper):
             cls('SmackJeeves/TheRealmOfKaerwyn', 'ComicFury/TheRealmOfKaerwyn'),
             cls('SoloLeveling', 'MangaDex/SoloLeveling'),
             cls('StudioKhimera/Draconia', 'Draconia'),
+            cls('StudioKhimera/UberQuest', 'UberQuest'),
             cls('TracesOfThePast', 'RickGriffinStudios/TracesOfThePast'),
             cls('TracesOfThePast/NSFW', 'RickGriffinStudios/TracesOfThePastNSFW'),
+
+            # Renamed in 3.1
+            cls('Exiern', 'ComicFury/Exiern'),
         )

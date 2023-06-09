@@ -26,14 +26,6 @@ class TableTitans(_ParserScraper):
     nextSearch = '//a[contains(text(), "Newest")]'
 
 
-class TailsAndTactics(_ParserScraper):
-    url = 'http://tailsandtactics.com/comic/'
-    stripUrl = url + '%s/'
-    firstStripUrl = stripUrl % '1'
-    imageSearch = '//div[@class="comic-image"]/img'
-    prevSearch = '//a[text()=" Back"]'
-
-
 class TekMage(WordPressNavi):
     url = 'https://tekmagecomic.com/'
     stripUrl = url + 'comic/%s/'

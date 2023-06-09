@@ -6,7 +6,7 @@
 from re import compile, escape, MULTILINE
 
 from ..util import tagre
-from ..scraper import _BasicScraper, _ParserScraper
+from ..scraper import BasicScraper, ParserScraper, _BasicScraper, _ParserScraper
 from ..helpers import regexNamer, bounceStarter, indirectStarter
 from .common import WordPressScraper, WordPressNavi, WordPressWebcomic
 
@@ -166,18 +166,18 @@ class AllTheGrowingThings(WordPressScraper):
     endOfLife = True
 
 
-class AlphaLuna(_ParserScraper):
-    url = 'https://alphaluna.net/'
+class AlphaLuna(ParserScraper):
+    url = 'https://alphalunacomic.net/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'issue-1-cover'
     imageSearch = '//main[@id="comic"]//img'
     prevSearch = '//a[@rel="prev"]'
 
 
-class AlphaLunaSpanish(_ParserScraper):
+class AlphaLunaSpanish(ParserScraper):
     name = 'AlphaLuna/Spanish'
     lang = 'es'
-    url = 'https://alphaluna.net/spanish/'
+    url = 'https://alphalunacomic.net/spanish/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'issue-1-cover'
     imageSearch = '//main[@id="comic"]//img'
@@ -375,6 +375,16 @@ class ATaleOfTails(WordPressScraper):
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'a-tale-of-tails-1-0'
     adult = True
+
+
+class AwkwardZombie(BasicScraper):
+    url = 'https://www.awkwardzombie.com/'
+    rurl = escape(url)
+    stripUrl = url + 'awkward-zombie/%s'
+    firstStripUrl = stripUrl % 'coin-battle'
+    imageSearch = compile(tagre("img", "src", r'(%scomics/[^"]+)' % rurl))
+    prevSearch = compile(tagre("a", "href", r'(%sawkward-zombie/[a-zA-Z-]+)' % rurl, before="prev"))
+    help = 'Index format: variable :('
 
 
 class AxeCop(WordPressScraper):

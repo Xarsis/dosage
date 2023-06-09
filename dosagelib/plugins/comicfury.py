@@ -73,10 +73,16 @@ class ComicFury(ParserScraper):
                 '//img[d:class("comicsegmentimage")]',
             )
 
-    def namer(self, image_url, page_url):
-        parts = page_url.split('/')
-        path, ext = os.path.splitext(image_url)
+    def namer(self, imageUrl, pageUrl):
+        parts = pageUrl.split('/')
+        path, ext = os.path.splitext(imageUrl)
         num = parts[-1]
+        if self.multipleImagesPerStrip:
+            page = self.getPage(pageUrl)
+            images = page.xpath('//img[@class="comicsegmentimage"]/@src')
+            if len(images) > 1:
+                imageIndex = images.index(imageUrl) + 1
+                return "%s_%s-%d%s" % (self.prefix, num, imageIndex, ext)
         return "%s_%s%s" % (self.prefix, num, ext)
 
     def shouldSkipUrl(self, url, data):
@@ -86,12 +92,13 @@ class ComicFury(ParserScraper):
             not data.xpath('//div[@id="comicimagewrap"]//img'))
 
     @classmethod
-    def getmodules(cls):  # noqa: Allowed to be long
+    def getmodules(cls):  # noqa: CFQ001
         return (
-            # These were once in the list below, but fell out from the index...
+            # Cannot be found via search?!?
             cls('BadassologyByMichaelBay', 'strudelology'),
             cls('DandyAndCompany', 'dandyandcompany'),
             cls('DeadAtNight', 'deadnight'),
+            cls('Exiern', 'exiern'),
             cls('Shatterrealm', 'shatterrealm'),
 
             # do not edit anything below since these entries are generated from
@@ -135,7 +142,7 @@ class ComicFury(ParserScraper):
             cls('AgentBishop', 'agentbishop'),
             cls('AHappierKindOfSad', 'ahappierkindofsad'),
             cls('AlbinoBrothers', 'albinobros'),
-            cls('Alderwood', 'alderwood'),
+            cls('Alderwood', 'alderwood', segmented=True),
             cls('AlexanderAndLucasRebooted', 'alexanderandlucas'),
             cls('AliaTerra', 'alia-terra'),
             cls('AlienIrony', 'alien-irony'),
@@ -761,6 +768,7 @@ class ComicFury(ParserScraper):
             cls('PilgrimEnEspanol', 'pilgrimenespanol', 'es'),
             cls('PITCHBLACK', 'pitchblack'),
             cls('PlasticBulletsMayhemUnloaded', 'plasticbulletsmayhemunloaded'),
+            cls('PMDOnBorrowedTime', 'onborrowedtime'),
             cls('Poharex', 'poharex'),
             cls('PokemonWarpers', 'pokemonwarpers'),
             cls('PokmonOurStory', 'pokemonos'),
@@ -783,6 +791,7 @@ class ComicFury(ParserScraper):
             cls('Pulse', 'pulse'),
             cls('PureHavoc', 'pure-havoc'),
             cls('Queenie', 'queenie'),
+            cls('QueenieAdventure', 'queenieadventure', adult=True, segmented=True),
             cls('QuestCorporeal', 'questcorporeal'),
             cls('Rain', 'rain'),
             cls('RandomlyAssembled', 'randomlyassembled'),
@@ -1138,6 +1147,7 @@ class ComicFury(ParserScraper):
             cls('Xibalba', 'xibalba'),
             cls('Xit', 'x-it'),
             cls('YesterdayBound', 'yesterdaybound'),
+            cls('YetAnotherPMDComic', 'yapc'),
             cls('YouAreNow', 'yan'),
             cls('YOURCHOICE', 'yourchoice'),
             cls('ZackDragonbladeAndTheExcalites', 'zackdragonblade'),

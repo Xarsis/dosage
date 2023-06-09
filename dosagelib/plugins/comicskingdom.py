@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2019-2022 Tobias Gruetzmacher
-# Copyright (C) 2019 Thomas W. Littauer
-from importlib.resources import path as get_path
+# SPDX-FileCopyrightText: © 2019 Tobias Gruetzmacher
+# SPDX-FileCopyrightText: © 2019 Thomas W. Littauer
+try:
+    from importlib_resources import as_file, files
+except ImportError:
+    from importlib.resources import as_file, files
 
 from ..helpers import bounceStarter, joinPathPartsNamer
 from ..scraper import ParserScraper
@@ -25,13 +28,13 @@ class ComicsKingdom(ParserScraper):
         # slightly iffy hack taken from certifi
         # We need or own certificate bundle since ComicsKingdom screws up their
         # TLS setup from time to time, this should "fix" it)
-        self.cert_ctx = get_path('dosagelib.data', 'godaddy-bundle-g2-2031.pem')
+        self.cert_ctx = as_file(files('dosagelib.data') / 'godaddy-bundle-g2-2031.pem')
         self.session.add_host_options('comicskingdom.com', {
             'verify': str(self.cert_ctx.__enter__()),
         })
 
     @classmethod
-    def getmodules(cls):  # noqa: Allowed to be long
+    def getmodules(cls):  # noqa: CFQ001
         return (
             # Some comics are not listed on the "all" page (too old?)
             cls('Retail', 'retail'),

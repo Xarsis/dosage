@@ -125,13 +125,6 @@ class CatAndGirl(_ParserScraper):
     prevSearch = '//a[d:class("pager--prev")]'
 
 
-class CatenaCafe(WordPressScraper):
-    name = 'CatenaManor/CatenaCafe'
-    url = 'https://catenamanor.com/'
-    stripUrl = url + 'comic/%s/'
-    firstStripUrl = stripUrl % 'reboot-book1cover-small'
-
-
 class CatenaManor(_ParserScraper):
     baseUrl = ('https://web.archive.org/web/20141027141116/'
         'http://catenamanor.com/')
@@ -416,6 +409,14 @@ class CSectionComics(WordPressScraper):
     firstStripUrl = url + 'comics/one-day-in-country'
     namer = joinPathPartsNamer((), (-3, -2, -1))
     multipleImagesPerStrip = True
+
+
+class CtrlAltDel(WordPressWebcomic):
+    url = 'https://cad-comic.com/'
+    stripUrl = url + 'comic/%s/'
+    firstStripUrl = stripUrl % 'nice-melon'
+    imageSearch = '//div[@class="comicpage"]//img[contains (@src,"/uploads/")]'
+    prevSearch = '//a[@rel="prev"]'
 
 
 class CucumberQuest(WordPressWebcomic):
