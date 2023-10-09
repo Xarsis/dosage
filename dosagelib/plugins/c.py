@@ -1,15 +1,15 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
-# Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2022 Tobias Gruetzmacher
-# Copyright (C) 2019-2020 Daniel Ring
+# SPDX-FileCopyrightText: © 2004 Tristan Seligmann and Jonathan Jacobs
+# SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
+# SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
+# SPDX-FileCopyrightText: © 2019 Daniel Ring
 from re import compile, escape
 from typing import List
 
-from ..scraper import _BasicScraper, _ParserScraper
+from ..scraper import _BasicScraper, _ParserScraper, ParserScraper
 from ..helpers import bounceStarter, indirectStarter, joinPathPartsNamer
 from ..util import tagre
-from .common import WordPressScraper, WordPressNavi, WordPressWebcomic
+from .common import ComicControlScraper, WordPressScraper, WordPressNavi, WordPressWebcomic
 
 
 class CampComic(_ParserScraper):
@@ -87,12 +87,20 @@ class CaseyAndAndy(_BasicScraper):
     help = 'Index format: number'
 
 
+
 class Castoff(_BasicScraper):
     url = 'https://www.castoff-comic.com/comic/'
     stripUrl = url + '%s'
     firstStripUrl = stripUrl % '1'
     imageSearch = compile(tagre("img", "src", r'(/assets/images/comics/[^"]+)'))
     prevSearch = compile(tagre("a", "href", r'(/comic/\d+)', before="nav-to-prev"))
+
+
+
+class CassiopeiaQuinn(ComicControlScraper):
+    url = 'https://www.cassiopeiaquinn.com/'
+    firstStripUrl = url + 'comic/the-prize-cover'
+
 
 
 class CasuallyKayla(_BasicScraper):
@@ -463,26 +471,15 @@ class CutLoose(_ParserScraper):
         return '%s-%s-%s_%s' % (postDate[1], postDate[2], postDate[3], filename)
 
 
-class CyanideAndHappiness(_BasicScraper):
-    url = 'https://explosm.net/comics/latest/'
-    stripUrl = 'https://explosm.net/comics/%s/'
-    firstStripUrl = stripUrl % '15'
-    imageSearch = compile(tagre("div", "class", r'MainComic__ComicImage[^"]+') + tagre("img", "src", r'(http[s]?://static\.explosm\.net/[^"]+)', after="decoding=\"async\""))
-    prevSearch = compile(tagre("a", "href", r'(/comics/[^"]+#comic)') + tagre("svg", "class", r'Arrow__StyledArrow[^"]+', after='rotate="180deg"'))
-    nextSearch = compile(tagre("a", "href", r'(/comics/[^"]+#comic)') + tagre("svg", "class", r'Arrow__StyledArrow[^"]+', after='rotate="0deg"'))
+
+class CyanideAndHappiness(ParserScraper):
+    url = 'https://explosm.net/'
+    imageSearch = '//div[@id="comic"]//div[contains(@class,"ComicImage")]/span//img'
+    prevSearch = '//div[@type="comic"]//a[*[local-name()="svg" and @rotate="180deg"]]'
+    nextSearch = '//div[@type="comic"]//a[*[local-name()="svg" and @rotate="0deg"]]'
     starter = bounceStarter
-    help = 'Index format: n (unpadded)'
+    namer = joinPathPartsNamer((), range(-4, 0))
 
-    def shouldSkipUrl(self, url, data):
-        """Skip pages without images."""
-        return "/comics/play-button.png" in data[0]
-
-    def namer(self, image_url, page_url):
-        imgname = image_url.split('/')[-1]
-        # only get the first 100 chars for the image name
-        imgname = imgname[:100]
-        imgnum = page_url.split('/')[-2]
-        return '%s_%s' % (imgnum, imgname)
 
 
 class CynWolf(_ParserScraper):

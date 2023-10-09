@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
-# Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2022 Tobias Gruetzmacher
-# Copyright (C) 2019-2020 Daniel Ring
+# SPDX-FileCopyrightText: © 2004 Tristan Seligmann and Jonathan Jacobs
+# SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
+# SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
+# SPDX-FileCopyrightText: © 2019 Daniel Ring
 import json
 from re import compile, escape, IGNORECASE
 
 from ..helpers import indirectStarter
-from ..scraper import _BasicScraper, _ParserScraper
+from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
 from ..util import tagre
 from ..xml import NS
 from .common import ComicControlScraper, WordPressScraper, WordPressWebcomic
@@ -165,14 +165,15 @@ class MonkeyUser(_ParserScraper):
         return data.xpath('//div[d:class("video-container")]', namespaces=NS)
 
 
-class MonsieurLeChien(_BasicScraper):
-    url = 'http://www.monsieur-le-chien.fr/'
+class MonsieurLeChien(ParserScraper):
+    url = ('https://web.archive.org/web/20210311002403/'
+        'http:/www.monsieur-le-chien.fr/')
     stripUrl = url + 'index.php?planche=%s'
     firstStripUrl = stripUrl % '2'
     lang = 'fr'
-    imageSearch = compile(tagre("img", "src", r'(i/planches/[^"]+)'))
-    prevSearch = compile(tagre("a", "href", r'([^"]+)') +
-                         tagre("img", "src", "i/precedent.gif"))
+    imageSearch = '//img[contains(@src,"i/planches/")]'
+    prevSearch = '//a[img[contains(@src,"i/precedent.gif")]]'
+    endOfLife = True
     help = 'Index format: n'
 
 
@@ -233,7 +234,7 @@ class MyCartoons(_BasicScraper):
     lang = 'de'
 
 
-class MyLifeWithFel(_ParserScraper):
+class MyLifeWithFel(ParserScraper):
     baseUrl = 'https://www.mylifewithfel.com/'
     stripUrl = baseUrl + 'api/posts/%s'
     firstStripUrl = stripUrl % '1'
@@ -249,7 +250,7 @@ class MyLifeWithFel(_ParserScraper):
     def getPrevUrl(self, url, data):
         return self.stripUrl % json.loads(data.text_content())['previous']['id']
 
-    def fetchUrls(self, url, data, urlSearch):
+    def extract_image_urls(self, url, data):
         return [self.baseUrl + json.loads(data.text_content())['post']['image']]
 
     def namer(self, imageUrl, pageUrl):

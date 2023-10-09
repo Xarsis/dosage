@@ -1,13 +1,10 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
-# Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2022 Tobias Gruetzmacher
-# Copyright (C) 2019-2020 Daniel Ring
-from re import compile
-
-from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
+# SPDX-FileCopyrightText: © 2004 Tristan Seligmann and Jonathan Jacobs
+# SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
+# SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
+# SPDX-FileCopyrightText: © 2019 Daniel Ring
+from ..scraper import ParserScraper, _ParserScraper
 from ..helpers import bounceStarter, indirectStarter
-from ..util import tagre
 from .common import ComicControlScraper, WordPressScraper, WordPressNaviIn
 
 
@@ -86,7 +83,7 @@ class LifeAintNoPonyFarm(WordPressScraper):
     endOfLife = True
 
 
-class LifeAsRendered(_ParserScraper):
+class LifeAsRendered(ParserScraper):
     # Reverse navigation doesn't work properly, so search forward instead
     stripUrl = 'https://kittyredden.com/LAR/%s/'
     url = stripUrl % '0100'
@@ -121,11 +118,11 @@ class LifeAsRendered(_ParserScraper):
         filename = imageUrl.rsplit('/', 1)[-1]
         return filename.replace('ReN', 'N').replace('N01P', 'A02S')
 
-    def fetchUrls(self, url, data, urlSearch):
+    def extract_image_urls(self, url, data):
         # Fix missing image link
-        if 'LAR/0403' in url and urlSearch == self.imageSearch:
+        if 'LAR/0403' in url:
             return [self.stripUrl.rstrip('/') % 'A04/A04P03.png']
-        return super(LifeAsRendered, self).fetchUrls(url, data, urlSearch)
+        return super().extract_image_urls(url, data)
 
     def getPrevUrl(self, url, data):
         # Fix broken navigation links
@@ -152,13 +149,12 @@ class LilithsWord(ComicControlScraper):
         return imageUrl.rsplit('/', 1)[-1].split('-', 1)[1]
 
 
-class LittleGamers(_BasicScraper):
-    url = 'http://www.little-gamers.com/'
-    stripUrl = url + '%s/'
-    firstStripUrl = stripUrl % '2000/12/01/99'
-    imageSearch = compile(tagre("img", "src", r'(http://little-gamers\.com/comics/[^"]+)'))
-    prevSearch = compile(tagre("a", "href", r'(http://www\.little-gamers\.com/[^"]+)', before="comic-nav-prev-link"))
-    help = 'Index format: yyyy/mm/dd/name'
+class LittleGamers(ParserScraper):
+    url = 'https://www.little-gamers.com/'
+    firstStripUrl = url + '2000/12/01/99'
+    imageSearch = '//div[d:class("comic")]//img'
+    prevSearch = ('//a[@id="previous"]',
+        '//div[d:class("comic-navigation")]//a[text()="previous"]')
 
 
 class LittleTales(_ParserScraper):
@@ -197,7 +193,7 @@ class LoadingArtist(_ParserScraper):
     starter = indirectStarter
 
 
-class LoFiJinks(WordPressNaviIn):
+class LoFiJinks(WordPressScraper):
     baseUrl = 'https://hijinksensue.com/comic/'
     url = baseUrl + 'learning-to-love-again/'
     firstStripUrl = baseUrl + 'lo-fijinks-everything-i-know-anout-james-camerons-avatar-movie/'
