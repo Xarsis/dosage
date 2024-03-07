@@ -4,10 +4,7 @@
 # SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
 from re import compile, escape, MULTILINE
-try:
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
+from functools import cached_property
 
 from ..scraper import _BasicScraper, _ParserScraper, ParserScraper
 from ..helpers import indirectStarter, joinPathPartsNamer, bounceStarter
@@ -285,7 +282,7 @@ class ToonHole(ParserScraper):
     prevSearch = '//a[@rel="prev"]'
     latestSearch = '//a[@rel="bookmark"]'
     starter = indirectStarter
-    namer = joinPathPartsNamer((), (-3, -2, -1))
+    namer = joinPathPartsNamer(imageparts=(-3, -2, -1))
 
 
 class TrippingOverYou(_BasicScraper):

@@ -1,9 +1,9 @@
 def pys = [
-    [name: 'Python 3.11', docker: '3.11-bookworm', tox:'py311,flake8', main: true],
+    [name: 'Python 3.12', docker: '3.12-bookworm', tox:'py312,flake8', main: true],
+    [name: 'Python 3.11', docker: '3.11-bookworm', tox:'py311', main: false],
     [name: 'Python 3.10', docker: '3.10-bookworm', tox:'py310', main: false],
-    [name: 'Python 3.9',  docker: '3.9-bookworm',  tox:'py39', main: false],
-    [name: 'Python 3.8',  docker: '3.8-bookworm',  tox:'py38', main: false],
-    [name: 'Python 3.7',  docker: '3.7-bookworm',  tox:'py37', main: false],
+    [name: 'Python 3.9',  docker: '3.9-bookworm',  tox:'py39',  main: false],
+    [name: 'Python 3.8',  docker: '3.8-bookworm',  tox:'py38',  main: false],
 ]
 
 properties([
@@ -55,11 +55,9 @@ pys.each { py ->
                     def buildVer = findFiles(glob: 'dist/*.tar.gz')[0].name.replaceFirst(/\.tar\.gz$/, '')
                     currentBuild.description = buildVer
 
-                    publishCoverage calculateDiffForChangeRequests: true,
-                        sourceFileResolver: sourceFiles('STORE_LAST_BUILD'),
-                        adapters: [
-                            coberturaAdapter('.tox/reports/*/coverage.xml')
-                        ]
+                    recordCoverage sourceCodeEncoding: 'UTF-8', tools: [
+                        [parser: 'COBERTURA', pattern: '.tox/reports/*/coverage.xml']
+                    ]
 
                     recordIssues sourceCodeEncoding: 'UTF-8',
                         referenceJobName: 'dosage/master',

@@ -9,18 +9,16 @@ node {
     stage ('Run tests') {
         timeout(time: 12, unit: 'HOURS') {
             withCredentials([string(credentialsId: 'proxymap', variable: 'PROXYMAP')]) {
-                sh 'podman run --rm -v $PWD:/work --userns=keep-id docker.io/python:3.11-bookworm /work/tests/modules/testall.sh'
+                sh 'podman run --rm -v $PWD:/work --userns=keep-id docker.io/python:3.12-bookworm /work/tests/modules/testall.sh'
             }
         }
     }
 
     stage('Report') {
         junit 'junit.xml'
-        publishCoverage calculateDiffForChangeRequests: true,
-            sourceFileResolver: sourceFiles('STORE_LAST_BUILD'),
-            adapters: [
-                coberturaAdapter('coverage.xml')
-            ]
+        recordCoverage sourceCodeEncoding: 'UTF-8', tools: [
+            [parser: 'COBERTURA', pattern: 'coverage.xml']
+        ]
     }
 
     stage('Allure Report') {

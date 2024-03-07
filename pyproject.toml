@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.2", "setuptools_scm>=6.2"]
+requires = ["setuptools>=66.0", "setuptools_scm>=7.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -17,24 +17,22 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Multimedia :: Graphics",
 ]
 keywords = ["comic", "webcomic", "downloader", "archiver", "crawler"]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "colorama",
     "imagesize",
     "lxml>=4.0.0",
     "platformdirs",
     "requests>=2.0",
-    "cached_property;python_version<'3.8'",
-    "importlib_metadata;python_version<'3.8'",
     "importlib_resources>=5.0.0;python_version<'3.9'",
 ]
 dynamic = ["version"]
@@ -52,16 +50,16 @@ dev = [
     "pytest-cov",
     "pytest-xdist",
     "responses",
-    "setup-cfg-fmt",
 ]
 lint = [
-    "flake8<6",
+    "flake8~=6.0",
     "flake8-2020",
     "flake8-breakpoint",
     "flake8-bugbear",
     "flake8-coding",
     "flake8-commas",
     "flake8-comprehensions",
+    "flake8-deprecated",
     "flake8-eradicate",
     "flake8-fixme",
     "flake8-functions",
@@ -100,7 +98,7 @@ ignore = [
 ]
 noqa-require-code = true
 no-accept-encodings = true
-min-version = "3.7"
+min-version = "3.8"
 extend-exclude = [
     '.venv',
     'build',

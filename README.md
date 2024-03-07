@@ -1,9 +1,9 @@
 # Dosage
 
-[![Tests](https://github.com/webcomics/dosage/actions/workflows/test.yml/badge.svg)](https://github.com/webcomics/dosage/actions/workflows/test.yml)
+[![CI](https://github.com/webcomics/dosage/actions/workflows/ci.yaml/badge.svg)](https://github.com/webcomics/dosage/actions/workflows/ci.yaml)
 [![Code Climate](https://codeclimate.com/github/webcomics/dosage/badges/gpa.svg)](https://codeclimate.com/github/webcomics/dosage)
 [![codecov](https://codecov.io/gh/webcomics/dosage/branch/master/graph/badge.svg)](https://codecov.io/gh/webcomics/dosage)
-![Maintenance](https://img.shields.io/maintenance/yes/2023.svg)
+![Maintenance](https://img.shields.io/maintenance/yes/2024.svg)
 ![License](https://img.shields.io/github/license/webcomics/dosage)
 
 Dosage is designed to keep a local copy of specific webcomics and other
@@ -72,7 +72,7 @@ are old enough to view them.
 ### Dependencies
 
 Since dosage is written in [Python](http://www.python.org/), a Python
-installation is required: Dosage needs at least Python 3.7. Dosage requires
+installation is required: Dosage needs at least Python 3.8. Dosage requires
 some Python modules from PyPI, so installation with `pip` is recommended.
 
 ### Using the Windows binary

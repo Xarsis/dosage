@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
-# Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2022 Tobias Gruetzmacher
-# Copyright (C) 2019-2020 Daniel Ring
+# SPDX-FileCopyrightText: © 2004 Tristan Seligmann and Jonathan Jacobs
+# SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
+# SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
+# SPDX-FileCopyrightText: © 2019 Daniel Ring
 from re import compile, escape
 
 from ..scraper import _BasicScraper, _ParserScraper, ParserScraper
@@ -34,16 +34,11 @@ class ParadigmShift(_BasicScraper):
     help = 'Index format: custom'
 
 
-class ParallelUniversum(_BasicScraper):
-    url = 'http://www.paralleluniversum.net/'
-    rurl = escape(url)
+class ParallelUniversum(WordPressScraper):
+    url = 'https://www.paralleluniversum.net/'
     stripUrl = url + '%s/'
     firstStripUrl = stripUrl % '001-der-comic-ist-tot'
-    imageSearch = compile(tagre("img", "src",
-                                r'(%scomics/\d+-\d+-\d+[^"]+)' % rurl))
-    prevSearch = compile(tagre("a", "href", r'(%s[^"]+/)' % rurl) +
-                         tagre("span", "class", "prev"))
-    help = 'Index format: number-stripname'
+    prevSearch = '//a[@rel="prev"]'
     lang = 'de'
 
 
@@ -95,14 +90,12 @@ class PebbleVersion(_ParserScraper):
     help = 'Index format: n (unpadded)'
 
 
-class PennyAndAggie(_BasicScraper):
-    url = 'http://pennyandaggie.com/'
-    rurl = escape(url)
-    stripUrl = url + 'index.php?p=%s'
-    imageSearch = compile(tagre("img", "src", r'(http://www\.pennyandaggie\.com/comics/[^"]+)'))
-    prevSearch = compile(tagre("a", "href", r"(index\.php\?p\=\d+)", quote="'") +
-                         tagre("img", "src", r'%simages/previous_day\.gif' % rurl, quote=""))
-    help = 'Index format: n (unpadded)'
+class PennyAndAggie(ComicControlScraper):
+    url = 'https://pixietrixcomix.com/penny-and-aggie'
+    stripUrl = url + '/%s'
+    firstStripUrl = stripUrl % '2004-09-06'
+    endOfLife = True
+    help = 'Index format: yyyy-mm-dd'
 
 
 class PennyArcade(_ParserScraper):
@@ -117,19 +110,17 @@ class PennyArcade(_ParserScraper):
     help = 'Index format: yyyy/mm/dd'
 
 
-class PeppermintSaga(WordPressNavi):
+class PeppermintSaga(WordPressScraper):
     url = 'http://www.pepsaga.com/'
-    stripUrl = url + '?p=%s'
-    firstStripUrl = stripUrl % '3'
-    help = 'Index format: number'
+    stripUrl = url + 'comics/%s/'
+    firstStripUrl = stripUrl % 'the-sword-of-truth-vol1'
     adult = True
 
 
-class PeppermintSagaBGR(WordPressNavi):
+class PeppermintSagaBGR(WordPressScraper):
     url = 'http://bgr.pepsaga.com/'
-    stripUrl = url + '?p=%s'
-    firstStripUrl = stripUrl % '4'
-    help = 'Index format: number'
+    stripUrl = url + '?comic=%s'
+    firstStripUrl = stripUrl % '04172011'
     adult = True
 
 
@@ -150,14 +141,16 @@ class PeterAndWhitney(_ParserScraper):
     prevSearch = '//a[./img[contains(@src, "nav_previous")]]'
 
 
-class PHDComics(_ParserScraper):
+class PHDComics(ParserScraper):
     BROKEN_COMMENT_END = compile(r'--!>')
 
     baseUrl = 'http://phdcomics.com/'
     url = baseUrl + 'comics.php'
     stripUrl = baseUrl + 'comics/archive.php?comicid=%s'
     firstStripUrl = stripUrl % '1'
-    imageSearch = '//img[@id="comic2"]'
+    imageSearch = ('//img[@id="comic2"]',
+        r'//img[d:class("img-responsive") and re:test(@name, "comic\d+")]')
+    multipleImagesPerStrip = True
     prevSearch = '//a[img[contains(@src, "prev_button")]]'
     nextSearch = '//a[img[contains(@src, "next_button")]]'
     help = 'Index format: n (unpadded)'
@@ -173,7 +166,7 @@ class PHDComics(_ParserScraper):
             # video
             self.stripUrl % '1880',
             self.stripUrl % '1669',
-        )
+        ) or data.xpath('//img[@id="comic" and contains(@src, "phd083123s")]')
 
 
 class Picklewhistle(ComicControlScraper):
@@ -333,11 +326,12 @@ class PS238(_ParserScraper):
 
 class PvPOnline(ParserScraper):
     baseUrl = 'https://www.toonhoundstudios.com/'
-    url = baseUrl + 'pvp/'
-    stripUrl = baseUrl + 'comic/%s/'
+    stripUrl = baseUrl + 'comic/%s/?sid=372'
+    url = stripUrl % 'pvp-2022-09-16'
     firstStripUrl = stripUrl % '19980504'
     imageSearch = '//div[@id="spliced-comic"]//img/@data-src-img'
     prevSearch = '//a[d:class("prev")]'
+    endOfLife = True
 
-    def namer(self, imageUrl, pageUrl):
-        return 'pvp' + imageUrl.rsplit('/', 1)[-1]
+    def namer(self, image_url, page_url):
+        return 'pvp' + image_url.rsplit('/', 1)[-1]
