@@ -24,9 +24,9 @@ class WebToons(ParserScraper):
             self.session.cookies.set(cookie, 'false', domain='webtoons.com')
         # Find current episode number
         listPage = self.getPage(self.listUrl)
-        currentEpisode = listPage.xpath('//div[@class="detail_lst"]/ul/li')[0].attrib['data-episode-no']
+        currentEpisode = self.match(listPage, '//div[d:class("detail_lst")]/ul/li')[0].attrib['data-episode-no']
         # Check for completed tag
-        self.endOfLife = (listPage.xpath('//div[@id="_asideDetail"]//span[@class="txt_ico_completed2"]') != [])
+        self.endOfLife = not self.match(listPage, '//div[@id="_asideDetail"]//span[d:class("txt_ico_completed2")]')
         return self.stripUrl % currentEpisode
 
     def extract_image_urls(self, url, data):
@@ -65,6 +65,7 @@ class WebToons(ParserScraper):
             cls('AGoodDayToBeADog', 'romance/a-good-day-tobe-a-dog', 1390),
             cls('Aisopos', 'drama/aisopos', 76),
             cls('AliceElise', 'fantasy/alice-elise', 1481),
+            cls('AlloyComics', 'canvas/alloy-comics', 747447),
             cls('AllThatWeHopeToBe', 'slice-of-life/all-that-we-hope-to-be', 470),
             cls('AllThatYouAre', 'drama/all-that-you-are', 403),
             cls('AlwaysHuman', 'romance/always-human', 557),
@@ -156,6 +157,7 @@ class WebToons(ParserScraper):
             cls('DrFrost', 'drama/dr-frost', 371),
             cls('DuelIdentity', 'challenge/duel-identity', 532064),
             cls('DungeonCleaningLife', 'action/the-dungeon-cleaning-life-of-a-once-genius-hunter', 4677),
+            cls('DungeonsAndDoodlesTalesFromTheTables', 'canvas/dungeons-doodles-tales-from-the-tables', 682646),
             cls('DungeonMinis', 'challenge/dungeonminis', 64132),
             cls('Dustinteractive', 'comedy/dustinteractive', 907),
             cls('DutyAfterSchool', 'sf/duty-after-school', 370),
@@ -213,6 +215,7 @@ class WebToons(ParserScraper):
             cls('Hooky', 'fantasy/hooky', 425),
             cls('HoovesOfDeath', 'fantasy/hooves-of-death', 1535),
             cls('HouseOfStars', 'fantasy/house-of-stars', 1620),
+            cls('HowToBeAMindReaver', 'canvas/how-to-be-a-mind-reaver', 301213),
             cls('HowToBecomeADragon', 'fantasy/how-to-become-a-dragon', 1973),
             cls('HowToLove', 'slice-of-life/how-to-love', 472),
             cls('IDontWantThisKindOfHero', 'super-hero/i-dont-want-this-kind-of-hero', 98),
@@ -266,6 +269,7 @@ class WebToons(ParserScraper):
             cls('LUMINE', 'fantasy/lumine', 1022),
             cls('Lunarbaboon', 'slice-of-life/lunarbaboon', 523),
             cls('MageAndDemonQueen', 'comedy/mage-and-demon-queen', 1438),
+            cls('MageAndMimic', 'comedy/mage-and-mimic', 5973),
             cls('Magical12thGraders', 'super-hero/magical-12th-graders', 90),
             cls('Magician', 'fantasy/magician', 70),
             cls('MagicSodaPop', 'fantasy/magic-soda-pop', 1947),
