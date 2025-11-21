@@ -14,6 +14,7 @@ MaintainerEmail = 'tobias-dosage@23.gs'
 Url = 'https://dosage.rocks/'
 SupportUrl = 'https://github.com/webcomics/dosage/issues'
 UserAgent = f"Mozilla/5.0 (compatible; {AppName}/{__version__}; +{Url})"
+#UserAgent = 'Facebot'
 Copyright = """Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
 Copyright (C) 2012-2014 Bastian Kleineidam
 Copyright (C) 2015-2025 Tobias Gruetzmacher
