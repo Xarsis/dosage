@@ -3,13 +3,20 @@
 # SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
 # SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
-from re import compile, escape
-from typing import List
+from __future__ import annotations
 
-from ..scraper import _BasicScraper, _ParserScraper, ParserScraper
+from re import compile, escape
+
+from .. import util
 from ..helpers import bounceStarter, indirectStarter, joinPathPartsNamer
+from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
 from ..util import tagre
-from .common import ComicControlScraper, WordPressScraper, WordPressNavi, WordPressWebcomic
+from .common import (
+    ComicControlScraper,
+    WordPressNavi,
+    WordPressScraper,
+    WordPressWebcomic,
+)
 
 
 class CampComic(_ParserScraper):
@@ -35,16 +42,16 @@ class CaptainSNES(_BasicScraper):
 
 
 class CarryOn(ParserScraper):
-    url = 'http://www.hirezfox.com/km/co/'
+    url = 'https://www.hirezfox.com/km/co/co1024/'
     stripUrl = url + 'd/%s.html'
     firstStripUrl = stripUrl % '20040701'
     imageSearch = '//div[d:class("strip")]/img'
     prevSearch = '//a[text()="Previous Day"]'
     multipleImagesPerStrip = True
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix filenames of early comics
-        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = util.urlpathsplit(image_url)[-1]
         if filename[0].isdigit():
             filename = 'co' + filename
         return filename
@@ -52,26 +59,26 @@ class CarryOn(ParserScraper):
 
 class CarryOnAliceBlueAndTheGardensOfQ(CarryOn):
     name = 'CarryOn/AliceBlueAndTheGardensOfQ'
-    url = 'http://www.hirezfox.com/km/abgq/abgq1024/'
+    url = 'https://www.hirezfox.com/km/abgq/abgq1024/'
     stripUrl = url + 'd/%s.html'
     firstStripUrl = stripUrl % '20050401'
     endOfLife = True
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix filenames
-        return 'abgq' + imageUrl.rsplit('/', 1)[-1]
+        return 'abgq' + util.urlpathsplit(image_url)[-1]
 
 
 class CarryOnLegendOfAnneBunny(CarryOn):
     name = 'CarryOn/LegendOfAnneBunny'
-    url = 'http://www.hirezfox.com/km/loab/loab1024/'
+    url = 'https://www.hirezfox.com/km/loab/loab1024/'
     stripUrl = url + 'd/%s.html'
     firstStripUrl = stripUrl % '20040701'
     endOfLife = True
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix filenames of early comics
-        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = util.urlpathsplit(image_url)[-1]
         if filename[0].isdigit():
             filename = 'ab' + filename
         return filename
@@ -102,15 +109,14 @@ class CassiopeiaQuinn(ComicControlScraper):
     firstStripUrl = url + 'comic/the-prize-cover'
 
 
-
-class CasuallyKayla(_BasicScraper):
-    url = 'http://casuallykayla.com/'
+class CasuallyKayla(ParserScraper):
+    url = ('https://web.archive.org/web/20180323230312/'
+        'https://casuallykayla.com/')
     stripUrl = url + '?p=%s'
     firstStripUrl = stripUrl % '89'
-    imageSearch = compile(tagre("img", "src",
-                                r'(http://casuallykayla\.com/comics/[^"]+)'))
-    prevSearch = compile(tagre("div", "class", r'nav-previous') +
-                         tagre("a", "href", r'([^"]+)'))
+    imageSearch = '//div[@id="comic"]/img'
+    prevSearch = '//a[@rel="prev"]'
+    endOfLife = True
     help = 'Index format: nnn'
 
 
@@ -142,7 +148,7 @@ class CatenaManor(ParserScraper):
     imageSearch = '//img[d:class("comicthumbnail")]'
     multipleImagesPerStrip = True
     endOfLife = True
-    strips: List[str] = []
+    strips: list[str] = []
 
     def starter(self):
         # Retrieve archive links and select valid range
@@ -197,7 +203,7 @@ class CavesAndCritters(WordPressWebcomic):
     adult = True
 
 
-class Centralia2050(_ParserScraper):
+class Centralia2050(ParserScraper):
     url = 'https://centralia2050.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'ch1cover'
@@ -207,11 +213,10 @@ class Centralia2050(_ParserScraper):
     starter = bounceStarter
 
     def namer(self, imageUrl, pageUrl):
-        page = pageUrl.rstrip('/').rsplit('/', 1)[-1].replace('chapter', 'ch')
+        page = util.urlpathsplit(pageUrl)[-1].replace('chapter', 'ch')
         if 'page-' in page and 'ch-' not in page:
             page = 'ch-1-' + page
-        ext = imageUrl.rsplit('.', 1)[-1]
-        return page + '.' + ext
+        return page
 
 
 class ChannelAte(WordPressNavi):
@@ -311,7 +316,7 @@ class CommanderKitty(WordPressNavi):
     endOfLife = True
 
 
-class CommitStrip(_ParserScraper):
+class CommitStrip(ParserScraper):
     baseUrl = 'https://www.commitstrip.com/en/'
     url = baseUrl + '?setLocale=1'  # ensure the language cookie is set
     stripUrl = baseUrl + '%s/'
@@ -319,16 +324,17 @@ class CommitStrip(_ParserScraper):
 
     latestSearch = '//section//a'
     starter = indirectStarter
+    namer = joinPathPartsNamer(pageparts=range(-4, 0), joinchar='-')
     imageSearch = '//article/div//img'
     prevSearch = '//span[@class="nav-previous"]/a'
     help = 'Index format: yyyy/mm/dd/strip-name'
 
-    def namer(self, image_url, page_url):
-        parts = page_url.rstrip('/').rsplit('/')[-4:]
-        return '-'.join(parts)
-
     def link_modifier(self, fromurl, tourl):
         return tourl.replace('http:', 'https:')
+
+    def shouldSkipUrl(self, url, data):
+        """Skip pages without images."""
+        return '2024/08/27/hello-world' in url
 
 
 class CommitStripFr(CommitStrip):
@@ -415,7 +421,7 @@ class CrossTimeCafe(_ParserScraper):
 class CSectionComics(WordPressScraper):
     url = 'https://www.csectioncomics.com/'
     firstStripUrl = url + 'comics/one-day-in-country'
-    namer = joinPathPartsNamer(imageparts=(-3, -2, -1))
+    namer = joinPathPartsNamer(imageparts=range(-3, 0))
     multipleImagesPerStrip = True
 
 
@@ -455,7 +461,7 @@ class Curvy(_ParserScraper):
     help = 'Index format: yyyymmdd'
 
 
-class CutLoose(_ParserScraper):
+class CutLoose(ParserScraper):
     url = 'https://www.cutloosecomic.com/'
     stripUrl = url + 'archive/comic/%s'
     firstStripUrl = stripUrl % '2016/02/02'
@@ -465,10 +471,10 @@ class CutLoose(_ParserScraper):
     starter = bounceStarter
     adult = True
 
-    def namer(self, imageUrl, pageUrl):
-        postDate = pageUrl.rsplit('/', 3)
-        filename = imageUrl.rsplit('/', 1)[-1]
-        return '%s-%s-%s_%s' % (postDate[1], postDate[2], postDate[3], filename)
+    def namer(self, image_url, page_url):
+        postDate = '-'.join(util.urlpathsplit(page_url)[-3:])
+        filename = util.urlpathsplit(image_url)[-1]
+        return f'{postDate}_{filename}'
 
 
 

@@ -5,11 +5,16 @@
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
 from re import compile, escape
 
-from ..scraper import _BasicScraper, _ParserScraper, ParserScraper
-from ..helpers import indirectStarter, bounceStarter
+from .. import util
+from ..helpers import bounceStarter, indirectStarter, joinPathPartsNamer
+from ..scraper import BasicScraper, ParserScraper, _BasicScraper, _ParserScraper
 from ..util import tagre
-from .common import (ComicControlScraper, WordPressScraper, WordPressNavi,
-    WordPressWebcomic)
+from .common import (
+    ComicControlScraper,
+    WordPressNavi,
+    WordPressScraper,
+    WordPressWebcomic,
+)
 
 
 class Damonk(_BasicScraper):
@@ -78,8 +83,8 @@ class DeadWinter(_BasicScraper):
     help = 'Index format: number'
 
 
-class Deathbulge(_BasicScraper):
-    url = 'http://www.deathbulge.com/api/comics'
+class Deathbulge(BasicScraper):
+    url = 'https://www.deathbulge.com/api/comics'
     imageSearch = compile(r"(/images/comics/[^\.]+\.jpg)")
     prevSearch = compile(r'"previous":(\d+),')
     firstStripUrl = url + '/1'
@@ -87,7 +92,7 @@ class Deathbulge(_BasicScraper):
     def getPrevUrl(self, url, data):
         if data[1] == self.url:
             data = (data[0], data[1] + '/')
-        return _BasicScraper.getPrevUrl(self, url, data)
+        return super().getPrevUrl(url, data)
 
 
 class DeepFried(_BasicScraper):
@@ -118,7 +123,7 @@ class Delve(WordPressScraper):
 
     def namer(self, imageUrl, pageUrl):
         # Fix inconsistent filenames
-        filename = imageUrl.rsplit('/', 1)[-1].rsplit('?', 1)[0]
+        filename = util.urlpathsplit(imageUrl)[-1]
         if (pageUrl == self.stripUrl % 'engagement' or
                 pageUrl == self.stripUrl % 'losing-it'):
             self.maxLen = self.maxLen - 1
@@ -152,14 +157,14 @@ class DerTodUndDasMaedchen(_ParserScraper):
 
 class DesertFox(WordPressWebcomic):
     url = 'https://desertfoxcomics.net/'
-    stripUrl = url + 'comics/%s/'
+    stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'origins-1'
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix inconsistent filenames
-        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = util.urlpathsplit(image_url)[-1]
         filename = filename.replace('Pg', 'Page').replace('Desert-Fox', '')
-        if 'origins' in pageUrl:
+        if 'origins' in page_url:
             filename = filename.replace('Page-', 'Page-0-')
         return filename
 
@@ -199,23 +204,8 @@ class DieselSweetiesOld(_ParserScraper):
         return self.stripUrl % '4000'
 
     def namer(self, image_url, page_url):
-        index = int(image_url.split('/')[-1].split('.')[0])
+        index = int(util.urlpathsplit(image_url)[-1].split('.')[0])
         return 'sw%02d' % index
-
-
-class Dilbert(_ParserScraper):
-    url = 'https://dilbert.com/'
-    stripUrl = url + 'strip/%s'
-    firstStripUrl = stripUrl % '1989-04-16'
-    starter = indirectStarter
-    prevSearch = '//div[d:class("nav-left")]/a'
-    imageSearch = '//img[d:class("img-comic")]'
-    latestSearch = '//a[@class="img-comic-link"]'
-    help = 'Index format: yyyy-mm-dd'
-
-    def namer(self, image_url, page_url):
-        name = page_url.rsplit("/", 1)[1]
-        return "%s" % name
 
 
 class DocRat(WordPressWebcomic):
@@ -225,13 +215,13 @@ class DocRat(WordPressWebcomic):
 
     def namer(self, imageUrl, pageUrl):
         # Fix inconsistent filenames
-        filename = imageUrl.rsplit('/', 1)[-1].rsplit('?', 1)[0]
+        filename = util.urlpathsplit(imageUrl)[-1]
         filename = filename.replace('2006-08-01', 'DR0027')
         filename = filename.replace('2006-07-31', 'DR0026')
         return filename
 
 
-class DoemainOfOurOwn(_ParserScraper):
+class DoemainOfOurOwn(ParserScraper):
     url = 'http://www.doemain.com/'
     stripUrl = url + 'html/%s.html'
     firstStripUrl = stripUrl % '1999/1999-04-24'
@@ -240,9 +230,9 @@ class DoemainOfOurOwn(_ParserScraper):
     endOfLife = True
     help = 'Index format: yyyy-mm-dd'
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix date formatting
-        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = util.urlpathsplit(image_url)[-1]
         if len(filename) > 6 and filename[0:6].isdigit():
             month = filename[0:2]
             day = filename[2:4]
@@ -258,7 +248,7 @@ class DoesNotPlayWellWithOthers(WordPressNavi):
     adult = True
 
 
-class DoghouseDiaries(_ParserScraper):
+class DoghouseDiaries(ParserScraper):
     url = 'http://thedoghousediaries.com/'
     stripUrl = url + '%s'
     firstStripUrl = stripUrl % '34'
@@ -267,10 +257,8 @@ class DoghouseDiaries(_ParserScraper):
     prevSearch = '//a[@id="previouslink"]'
     nextSearch = '//a[@id="nextlink"]'
     starter = bounceStarter
+    namer = joinPathPartsNamer(pageparts=(-1,))
     help = 'Index format: number'
-
-    def namer(self, imageUrl, pageUrl):
-        return pageUrl.rsplit('/', 1)[-1] + '.' + imageUrl.rsplit('.', 1)[-1]
 
 
 class DominicDeegan(_ParserScraper):
@@ -358,13 +346,13 @@ class Drive(ParserScraper):
     prevSearch = '//a[d:class("previous-comic")]'
 
 
-class DrMcNinja(_ParserScraper):
-    url = 'http://drmcninja.com/'
+class DrMcNinja(ParserScraper):
+    url = ('https://web.archive.org/web/20210322033246/'
+        'http://drmcninja.com/')
     stripUrl = url + 'archives/comic/%s/'
     firstStripUrl = stripUrl % '0p1'
-    css = True
-    imageSearch = 'div#comic img'
-    prevSearch = 'a.prev'
+    imageSearch = '//div[@id="comic"]/img'
+    prevSearch = '//a[d:class("prev")]'
     help = 'Index format: {episode}p{page}'
 
 

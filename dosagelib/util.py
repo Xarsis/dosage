@@ -1,25 +1,25 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
-# Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2020 Tobias Gruetzmacher
+# SPDX-FileCopyrightText: © 2004 Tristan Seligmann and Jonathan Jacobs
+# SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
+# SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
+from __future__ import annotations
+
 import html
+import logging
 import os
 import re
 import subprocess
 import sys
 import time
 import traceback
-
-from functools import lru_cache
-from urllib.parse import (parse_qs, quote as url_quote, unquote as url_unquote,
-        urlparse, urlunparse, urlsplit)
-from urllib.robotparser import RobotFileParser
+from urllib import parse
 
 import lxml
 
-from .output import out
-from .configuration import UserAgent, App, SupportUrl
-from . import AppName
+from . import AppName, http
+from .configuration import App, SupportUrl
+
+logger = logging.getLogger(__name__)
 
 # Maximum content size for HTML pages
 MaxContentBytes = 1024 * 1024 * 3  # 3 MB
@@ -145,10 +145,10 @@ def case_insensitive_re(name):
 
 def get_page(url, session, **kwargs):
     """Get text content of given URL."""
-    check_robotstxt(url, session)
+    http.check_robotstxt(url, session)
     # read page data
     page = urlopen(url, session, max_content_bytes=MaxContentBytes, **kwargs)
-    out.debug(u"Got page content %r" % page.content, level=3)
+    logger.trace("Got page content %r", page.content)
     return page
 
 
@@ -182,7 +182,7 @@ def normaliseURL(url):
     # XXX: brutal hack
     url = html.unescape(url)
 
-    pu = list(urlparse(url))
+    pu = list(parse.urlparse(url))
     segments = pu[2].split('/')
     while segments and segments[0] in ('', '..'):
         del segments[0]
@@ -192,60 +192,26 @@ def normaliseURL(url):
         pu[4] = pu[4][1:]
     # remove anchor
     pu[5] = ""
-    return urlunparse(pu)
-
-
-def get_roboturl(url):
-    """Get robots.txt URL from given URL."""
-    pu = urlparse(url)
-    return urlunparse((pu[0], pu[1], "/robots.txt", "", "", ""))
-
-
-def check_robotstxt(url, session):
-    """Check if robots.txt allows our user agent for the given URL.
-    @raises: IOError if URL is not allowed
-    """
-    roboturl = get_roboturl(url)
-    rp = get_robotstxt_parser(roboturl, session=session)
-    if not rp.can_fetch(UserAgent, str(url)):
-        raise IOError("%s is disallowed by %s" % (url, roboturl))
-
-
-@lru_cache()
-def get_robotstxt_parser(url, session=None):
-    """Get a RobotFileParser for the given robots.txt URL."""
-    rp = RobotFileParser()
-    try:
-        req = urlopen(url, session, max_content_bytes=MaxContentBytes,
-                      allow_errors=range(600))
-    except Exception:
-        # connect or timeout errors are treated as an absent robots.txt
-        rp.allow_all = True
-    else:
-        if req.status_code >= 400:
-            rp.allow_all = True
-        elif req.status_code == 200:
-            rp.parse(req.text.splitlines())
-    return rp
+    return parse.urlunparse(pu)
 
 
 def urlopen(url, session, referrer=None, max_content_bytes=None,
             allow_errors=(), **kwargs):
     """Open an URL and return the response object."""
-    out.debug(u'Open URL %s' % url)
+    logger.debug('Open URL %r', url)
     if 'headers' not in kwargs:
         kwargs['headers'] = {}
     if referrer:
         kwargs['headers']['Referer'] = referrer
-    out.debug(u'Sending headers %s' % kwargs['headers'], level=3)
-    out.debug(u'Sending cookies %s' % session.cookies)
+    logger.trace('Sending headers %r', kwargs['headers'])
+    logger.debug('Sending cookies %r', session.cookies)
     if 'data' not in kwargs:
         method = 'GET'
     else:
         method = 'POST'
-        out.debug(u'Sending POST data %s' % kwargs['data'], level=3)
+        logger.trace('Sending POST data %r', kwargs['data'])
     req = session.request(method, url, **kwargs)
-    out.debug(u'Response cookies: %s' % req.cookies)
+    logger.debug('Response cookies: %r', req.cookies)
     check_content_size(url, req.headers, max_content_bytes)
     if req.status_code not in allow_errors:
         req.raise_for_status()
@@ -292,23 +258,23 @@ def getRelativePath(basepath, path):
 
 def getQueryParams(url):
     """Get URL query parameters."""
-    query = urlsplit(url).query
-    out.debug(u'Extracting query parameters from %r (%r)...' % (url, query))
-    return parse_qs(query)
+    query = parse.urlsplit(url).query
+    logger.debug('Extracting query parameters from %r (%r)...', url, query)
+    return parse.parse_qs(query)
 
 
 def internal_error(out=sys.stderr, etype=None, evalue=None, tb=None):
     """Print internal error message (output defaults to stderr)."""
     print(os.linesep, file=out)
-    print("""********** Oops, I did it again. *************
+    print(f"""********** Oops, I did it again. *************
 
-You have found an internal error in %(app)s. Please write a bug report
-at %(url)s and include at least the information below:
+You have found an internal error in {AppName}. Please write a bug report
+at {SupportUrl} and include at least the information below:
 
 Not disclosing some of the information below due to privacy reasons is ok.
 I will try to help you nonetheless, but you have to give me something
 I can work with ;) .
-""" % {'app': AppName, 'url': SupportUrl}, file=out)
+""", file=out)
     if etype is None:
         etype = sys.exc_info()[0]
     if evalue is None:
@@ -321,7 +287,7 @@ I can work with ;) .
     print_proxy_info(out=out)
     print_locale_info(out=out)
     print(os.linesep,
-          "******** %s internal error, over and out ********" % AppName,
+          f"******** {AppName} internal error, over and out ********",
           file=out)
 
 
@@ -379,36 +345,11 @@ def rfc822date(indate):
 def unquote(text):
     """Replace all percent-encoded entities in text."""
     while '%' in text:
-        newtext = url_unquote(text)
+        newtext = parse.unquote(text)
         if newtext == text:
             break
         text = newtext
     return text
-
-
-def quote(text, safechars='/'):
-    """Percent-encode given text."""
-    return url_quote(text, safechars)
-
-
-def strsize(b):
-    """Return human representation of bytes b. A negative number of bytes
-    raises a value error."""
-    if b < 0:
-        raise ValueError("Invalid negative byte number")
-    if b < 1024:
-        return "%dB" % b
-    if b < 1024 * 10:
-        return "%dKB" % (b // 1024)
-    if b < 1024 * 1024:
-        return "%.2fKB" % (float(b) / 1024)
-    if b < 1024 * 1024 * 10:
-        return "%.2fMB" % (float(b) / (1024 * 1024))
-    if b < 1024 * 1024 * 1024:
-        return "%.1fMB" % (float(b) / (1024 * 1024))
-    if b < 1024 * 1024 * 1024 * 10:
-        return "%.2fGB" % (float(b) / (1024 * 1024 * 1024))
-    return "%.1fGB" % (float(b) / (1024 * 1024 * 1024))
 
 
 def getFilename(name):
@@ -483,3 +424,16 @@ def uniq(input):
         if item not in output:
             output.append(item)
     return output
+
+
+def urlpathsplit(url: str) -> list[str]:
+    """Split the path of an URL into components, removing empty leading and
+    trailing segments. This makes URL handling more robust against added or
+    removed slashes.
+    """
+    parts = parse.urlsplit(url).path.split('/')
+    while parts and not parts[-1]:
+        del parts[-1]
+    while parts and not parts[0]:
+        del parts[0]
+    return parts

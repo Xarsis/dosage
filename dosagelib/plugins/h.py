@@ -1,18 +1,20 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
-# Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2022 Tobias Gruetzmacher
-# Copyright (C) 2019-2020 Daniel Ring
+# SPDX-FileCopyrightText: © 2004 Tristan Seligmann and Jonathan Jacobs
+# SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
+# SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
+# SPDX-FileCopyrightText: © 2019 Daniel Ring
 from re import compile, escape
 
+from .. import util
+from ..helpers import bounceStarter, indirectStarter, joinPathPartsNamer
 from ..scraper import BasicScraper, ParserScraper
 from ..util import tagre
-from ..helpers import bounceStarter, indirectStarter
-from .common import ComicControlScraper, WordPressScraper, WordPressNaviIn
+from .common import ComicControlScraper, WordPressNaviIn, WordPressScraper
 
 
 class Hackles(ParserScraper):
-    url = 'http://hackles.org/'
+    url = ('https://web.archive.org/web/20220128022158/'
+        'http://hackles.org/')
     stripUrl = url + 'cgi-bin/archives.pl?request=%s'
     firstStripUrl = stripUrl % '1'
     imageSearch = '//img[contains(@src, "strips/")]'
@@ -53,9 +55,9 @@ class HarkAVagrant(BasicScraper):
     help = 'Index format: number'
 
     def namer(self, image_url, page_url):
-        filename = image_url.rsplit('/', 1)[1]
+        filename = util.urlpathsplit(image_url)[-1]
         num = page_url.rsplit('=', 1)[1]
-        return '%s-%s' % (num, filename)
+        return f'{num}-{filename}'
 
 
 class HavocInc(WordPressScraper):
@@ -77,9 +79,7 @@ class Hellkats(ParserScraper):
     latestSearch = '//div[@class="post-title"]//a'
     starter = indirectStarter
     adult = True
-
-    def namer(self, imageUrl, pageUrl):
-        return pageUrl.rsplit('/', 2)[1] + '.' + imageUrl.rsplit('.', 1)[-1]
+    namer = joinPathPartsNamer(pageparts=(-2,))
 
 
 class HeyFox(WordPressScraper):
@@ -126,12 +126,12 @@ class HijinksEnsuePhoto(WordPressNaviIn):
 
 
 class HowToBeAWerewolf(ComicControlScraper):
-    url = 'http://howtobeawerewolf.com/'
+    url = 'https://www.howtobeawerewolf.com/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % 'coming-february-3rd'
 
-    def namer(self, imageUrl, pageUrl):
-        filename = imageUrl.rsplit('/', 1)[-1]
+    def namer(self, image_url, page_url):
+        filename = util.urlpathsplit(image_url)[-1]
         if filename[0].isdigit():
             filename = filename.split('-', 1)[1]
         return filename

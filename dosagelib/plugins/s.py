@@ -3,14 +3,19 @@
 # SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
 # SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
-from re import compile, escape, IGNORECASE, sub
-from os.path import splitext
+from re import IGNORECASE, compile, escape, sub
 
-from ..scraper import _BasicScraper, _ParserScraper, ParserScraper
-from ..helpers import indirectStarter, bounceStarter, joinPathPartsNamer
+from .. import util
+from ..helpers import bounceStarter, indirectStarter, joinPathPartsNamer
+from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
 from ..util import tagre
-from .common import (ComicControlScraper, WordPressScraper, WordPressSpliced,
-    WordPressNavi, WordPressWebcomic)
+from .common import (
+    ComicControlScraper,
+    WordPressNavi,
+    WordPressScraper,
+    WordPressSpliced,
+    WordPressWebcomic,
+)
 
 
 class SabrinaOnline(_BasicScraper):
@@ -108,8 +113,8 @@ class ScenesFromAMultiverse(_BasicScraper):
     help = 'Index format: yyyy/mm/dd/stripname'
 
 
-class SchlockMercenary(_ParserScraper):
-    url = 'http://www.schlockmercenary.com/'
+class SchlockMercenary(ParserScraper):
+    url = 'https://www.schlockmercenary.com/'
     stripUrl = url + '%s'
     firstStripUrl = stripUrl % '2000-06-12'
     imageSearch = '//div[@class="strip-image-wrapper"]/img'
@@ -170,10 +175,10 @@ class SexyLosers(_ParserScraper):
     latestSearch = '//a[@rel="bookmark"]'
     help = 'Index format: nnn'
     starter = indirectStarter
-    namer = joinPathPartsNamer((-2,), (-1,), '-')
+    namer = joinPathPartsNamer(pageparts=(-1,), imageparts=(-1,), joinchar='-')
 
 
-class ShadesOfGray(_ParserScraper):
+class ShadesOfGray(ParserScraper):
     url = 'https://www.theduckwebcomics.com/Shades_of_Gray/'
     stripUrl = url + '%s/'
     firstStripUrl = stripUrl % '4820502'
@@ -181,10 +186,8 @@ class ShadesOfGray(_ParserScraper):
     prevSearch = '//a[img[@class="arrow_prev"]]'
     nextSearch = '//a[img[@class="arrow_next"]]'
     starter = bounceStarter
+    namer = joinPathPartsNamer(pageparts=(-1,))
     endOfLife = True
-
-    def namer(self, imageUrl, pageUrl):
-        return pageUrl.rstrip('/').rsplit('/', 1)[-1]
 
 
 class Sharksplode(WordPressScraper):
@@ -209,9 +212,7 @@ class Shifters(ParserScraper):
     prevSearch = '//a[@class="previous-comic"]'
     latestSearch = '//div[@id="comic-archive-list"]//a'
     starter = indirectStarter
-
-    def namer(self, imageUrl, pageUrl):
-        return pageUrl.rsplit('/', 2)[1] + '.' + imageUrl.rsplit('.', 1)[-1]
+    namer = joinPathPartsNamer(pageparts=(-1,))
 
 
 class ShiftersOnGossamerWings(Shifters):
@@ -231,7 +232,7 @@ class ShiftersTheBeastWithin(Shifters):
     endOfLife = True
 
     def namer(self, imageUrl, pageUrl):
-        filename = pageUrl.rsplit('/', 2)[1] + '.' + imageUrl.rsplit('.', 1)[-1]
+        filename = util.urlpathsplit(pageUrl)[-1]
         if filename.startswith('the-company-of-dragons'):
             filename = 'in-' + filename
         # Prepend chapter number to filename
@@ -316,9 +317,12 @@ class SixPackOfOtters(WordPressWebcomic):
 
 
 class SkinDeep(WordPressWebcomic):
-    url = 'http://www.skindeepcomic.com/'
+    url = 'https://www.skindeepcomic.com/'
     stripUrl = url + 'archive/%s/'
     firstStripUrl = stripUrl % 'issue-1-cover'
+    imageSearch = '//div[d:class("webcomic-image")]//noscript/img'
+    starter = bounceStarter
+    namer = joinPathPartsNamer(pageparts=(-1,))
 
 
 class SleeplessDomain(ComicControlScraper):
@@ -326,26 +330,20 @@ class SleeplessDomain(ComicControlScraper):
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % 'chapter-1-cover'
     starter = bounceStarter
-
-    def namer(self, imageUrl, pageUrl):
-        return pageUrl.rsplit('/', 1)[-1] + '.' + imageUrl.rsplit('.', 1)[-1]
+    namer = joinPathPartsNamer(pageparts=(-1,))
 
 
 class SlightlyDamned(ComicControlScraper):
     url = 'http://www.sdamned.com/'
     firstStripUrl = url + 'comic/prologue'
+    starter = bounceStarter
 
     def namer(self, imageurl, pageurl):
         """Clean up mixed filename formats."""
-        filename = pageurl.rsplit('/', 1)[-1]
-        if filename == '':
-            filename = imageurl.rsplit('-', 1)[-1]
-        else:
-            filename = 'SD' + filename + '.' + imageurl.rsplit('.', 1)[-1]
-        return filename
+        return 'SD' + util.urlpathsplit(pageurl)[-1]
 
 
-class SluggyFreelance(_ParserScraper):
+class SluggyFreelance(ParserScraper):
     url = 'https://sluggy.com/'
     stripUrl = 'https://archives.sluggy.com/book.php?chapter=%s'
     firstStripUrl = stripUrl % '1'
@@ -358,7 +356,7 @@ class SluggyFreelance(_ParserScraper):
 
     def namer(self, imageurl, pageurl):
         # Remove random noise from filename
-        return imageurl.rsplit('/', 1)[-1].split('.pagespeed', 1)[0]
+        return util.urlpathsplit(imageurl)[-1].split('.', 1)[0]
 
 
 class SMBC(ComicControlScraper):
@@ -369,9 +367,9 @@ class SMBC(ComicControlScraper):
     textSearch = '//img[@id="cc-comic"]/@title'
     multipleImagesPerStrip = True
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Remove random noise from filename
-        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = util.urlpathsplit(image_url)[-1]
         if '-' in filename and len(filename.rsplit('-', 1)[-1]) > 12:
             filename = filename.rsplit('-', 1)[-1]
         elif len(filename) > 22 and filename[0] == '1':
@@ -392,7 +390,7 @@ class SnowFlame(WordPressScraper):
         return self.stripUrl % tuple(index.split('-'))
 
     def namer(self, image_url, page_url):
-        prefix, filename = image_url.rsplit('/', 1)
+        filename = util.urlpathsplit(image_url)[-1]
         ro = compile(r'snowflame-([^-]+)-([^-]+)')
         mo = ro.search(page_url)
         chapter = mo.group(1)
@@ -545,12 +543,12 @@ class StandStillStaySilent(_ParserScraper):
     imageSearch = '//img[@class="comicnormal"]'
     prevSearch = '//a[./img[contains(@src, "nav_prev")]]'
 
-    def namer(self, imageUrl, pageUrl):
-        chapter = '2' if ('adv2_comicpages' in imageUrl) else '1'
-        return '%s-%s' % (chapter, imageUrl.rsplit('/', 1)[-1].replace('page_', ''))
+    def namer(self, image_url, page_url):
+        chapter = '2' if ('adv2_comicpages' in image_url) else '1'
+        return '%s-%s' % (chapter, util.urlpathsplit(image_url)[-1].replace('page_', ''))
 
 
-class StarCrossdDestiny(_ParserScraper):
+class StarCrossdDestiny(ParserScraper):
     baseUrl = ('https://web.archive.org/web/20190918132321/'
         'http://starcrossd.net/')
     url = baseUrl + 'comic.html'
@@ -568,8 +566,7 @@ class StarCrossdDestiny(_ParserScraper):
             image_url = sub('(?:strips)|(?:images)', 'book1', image_url)
         elif not image_url.find('strips') == -1:
             image_url = image_url.replace('strips/', '')
-        directory, filename = image_url.split('/')[-2:]
-        filename, extension = splitext(filename)
+        directory, filename = util.urlpathsplit(image_url)[-2:]
         return directory + '-' + filename
 
 
@@ -582,9 +579,7 @@ class StarfireAgency(ParserScraper):
     latestSearch = '//div[@class="post-title"]//a'
     starter = indirectStarter
     adult = True
-
-    def namer(self, imageUrl, pageUrl):
-        return pageUrl.rsplit('/', 2)[1] + '.' + imageUrl.rsplit('.', 1)[-1]
+    namer = joinPathPartsNamer(pageparts=(-1,))
 
 
 class StarTrip(ComicControlScraper):
@@ -615,11 +610,12 @@ class StringTheory(WordPressNavi):
     firstStripUrl = url + 'comics/chapterone/chapterone/'
 
 
-class StrongFemaleProtagonist(_ParserScraper):
-    url = 'http://strongfemaleprotagonist.com/'
+class StrongFemaleProtagonist(ParserScraper):
+    url = 'https://strongfemaleprotagonist.com/'
     stripUrl = url + '%s/'
+    firstStripUrl = stripUrl % 'issue-1/page-0'
     imageSearch = '//article/p/img'
-    prevSearch = '//a[@class="page-nav__item--left"]'
+    prevSearch = '//a[d:class("page-nav__item--left")]'
     help = 'Index format: issue-?/page-??'
 
     def shouldSkipUrl(self, url, data):
@@ -644,7 +640,8 @@ class StupidFox(ParserScraper):
 
     def namer(self, imageUrl, pageUrl):
         page = self.getPage(pageUrl)
-        title = self.match(page, self.imageSearch + '/@title')[0].replace(' - ', '-').replace(' ', '-')
+        title = self.match(page, self.imageSearch + '/@title')[0].replace(' - ',
+            '-').replace(' ', '-')
         return title + '.' + imageUrl.rsplit('.', 1)[-1]
 
 

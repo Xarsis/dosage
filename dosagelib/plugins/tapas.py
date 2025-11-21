@@ -1,8 +1,12 @@
 # SPDX-License-Identifier: MIT
 # SPDX-FileCopyrightText: © 2019 Tobias Gruetzmacher
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
-from ..output import out
+import logging
+
+from .. import util
 from ..scraper import ParserScraper
+
+logger = logging.getLogger(__name__)
 
 
 class Tapas(ParserScraper):
@@ -43,19 +47,18 @@ class Tapas(ParserScraper):
 
     def shouldSkipUrl(self, url, data):
         if self.match(data, '//button[d:class("js-have-to-sign")]'):
-            out.warn(f'Nothing to download on "{url}", because a login is required.')
+            logger.warning('Nothing to download on %r, because a login is required.', url)
             return True
         return False
 
     def namer(self, imageUrl, pageUrl):
         # Construct filename from episode number and image position on page
-        episodeNum = pageUrl.rsplit('/', 1)[-1]
+        episodeNum = util.urlpathsplit(pageUrl)[-1]
         imageNum = self._cached_image_urls.index(imageUrl)
-        imageExt = pageUrl.rsplit('.', 1)[-1]
         if len(self._cached_image_urls) > 1:
-            filename = "%s-%d.%s" % (episodeNum, imageNum, imageExt)
+            filename = "%s-%d" % (episodeNum, imageNum)
         else:
-            filename = "%s.%s" % (episodeNum, imageExt)
+            filename = "%s" % (episodeNum)
         return filename
 
     @classmethod
@@ -66,7 +69,6 @@ class Tapas(ParserScraper):
             cls('FANGS', 'fangscomic'),
             cls('FishNuggets', 'Fish-Nuggets'),
             cls('Ginpu', 'Ginpu-Studios-Comics'),
-            cls('HoneyAndTheMoon', 'Honey-and-the-Moon'),
             cls('InsignificantOtters', 'IOtters'),
             cls('MagicalBoy', 'magicalboy'),
             cls('NoFuture', 'NoFuture'),

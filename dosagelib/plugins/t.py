@@ -3,14 +3,20 @@
 # SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
 # SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
-from re import compile, escape, MULTILINE
 from functools import cached_property
+from re import MULTILINE, compile, escape
 
-from ..scraper import _BasicScraper, _ParserScraper, ParserScraper
-from ..helpers import indirectStarter, joinPathPartsNamer, bounceStarter
+from .. import util
+from ..helpers import bounceStarter, indirectStarter, joinPathPartsNamer
+from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
 from ..util import tagre
-from .common import (ComicControlScraper, WordPressScraper, WordPressSpliced,
-        WordPressNavi, WordPressWebcomic)
+from .common import (
+    ComicControlScraper,
+    WordPressNavi,
+    WordPressScraper,
+    WordPressSpliced,
+    WordPressWebcomic,
+)
 
 
 class TableTitans(_ParserScraper):
@@ -59,19 +65,20 @@ class TheChroniclesOfHuxcyn(WordPressScraper):
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % 'opening-001'
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix inconsistent filenames
-        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = util.urlpathsplit(image_url)[-1]
         filename = filename.replace('IMG_0504', 'TCoH109')
         filename = filename.replace('tcoh', 'TCoH')
-        filename = filename.replace('1599151639.xizana_f3a6458e-8d94-4259-bec3-5a92706fe493_jpeg', 'october.2020.cover')
+        filename = filename.replace('1599151639.xizana_f3a6458e-8d94-4259-bec3-5a92706fe493_jpeg',
+            'october.2020.cover')
         filename = filename.replace('huxonsword', 'october.2020.huxonsword')
         filename = filename.replace('New_Canvas100pageswebimage', 'TCoH100')
         if filename[0] == '0':
             filename = 'TCoH' + filename
         elif filename[0] == '3':
             pagenum = int(filename.rsplit('.', 1)[0].split('_', 1)[1].split('_', 1)[0])
-            filename = 'TCoH' + str(40 + pagenum) + filename.rsplit('.', 1)[-1]
+            filename = 'TCoH' + str(40 + pagenum)
         return filename
 
 
@@ -92,9 +99,9 @@ class TheDepths(WordPressWebcomic):
     imageSearch = '//div[contains(@class, "webcomic-media")]//img'
     adult = True
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix inconsistent filenames
-        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = util.urlpathsplit(image_url)[-1]
         filename = filename.replace('pg', 'page_')
         filename = filename.replace('page_', 'the_depths_')
         filename = filename.replace('-web', '')
@@ -119,7 +126,7 @@ class TheForgottenOrder(ComicControlScraper):
 
 class TheGamerCat(WordPressSpliced):
     url = 'https://thegamercat.com/'
-    firstStripUrl = url +  'comic/06102011/'
+    firstStripUrl = url + 'comic/06102011/'
 
 
 class TheGentlemansArmchair(WordPressScraper):
@@ -131,10 +138,10 @@ class TheGentleWolf(WordPressScraper):
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'tgw-001'
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix duplicate filename
-        filename = imageUrl.rsplit('/', 1)[-1]
-        if pageUrl == self.stripUrl % 'tgw-271':
+        filename = util.urlpathsplit(image_url)[-1]
+        if page_url == self.stripUrl % 'tgw-271':
             filename = filename.replace('272', '271')
         return filename
 
@@ -182,15 +189,15 @@ class TheNoob(WordPressScraper):
     help = 'Index format: n (unpadded)'
 
 
-class TheOldVictorian(_ParserScraper):
+class TheOldVictorian(ParserScraper):
     url = 'http://theoldvictorianwebcomic.com/'
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'the-old-victorian-cover'
     imageSearch = '//div[@id="comic"]//img'
     prevSearch = '//a[contains(@class, "comic-nav-previous")]'
 
-    def namer(self, imageUrl, pageUrl):
-        filename = imageUrl.rsplit('/', 1)[-1].replace('_', '-')
+    def namer(self, image_url, page_url):
+        filename = util.urlpathsplit(image_url)[-1].replace('_', '-')
         filename = filename.replace('TOV00', 'TOV-00')
         if filename.replace('oldvic', '')[0].isdigit():
             filename = filename.replace('oldvic', 'TOV-00')
@@ -199,7 +206,7 @@ class TheOldVictorian(_ParserScraper):
         return filename
 
 
-class TheOrderOfTheStick(_ParserScraper):
+class TheOrderOfTheStick(ParserScraper):
     url = 'https://www.giantitp.com/'
     stripUrl = url + 'comics/oots%s.html'
     firstStripUrl = stripUrl % '0001'
@@ -208,9 +215,7 @@ class TheOrderOfTheStick(_ParserScraper):
     latestSearch = '//a[@class="SideBar" and contains(@href, "/comics/oots")]'
     help = 'Index format: n (unpadded)'
     starter = indirectStarter
-
-    def namer(self, image_url, page_url):
-        return page_url.rsplit('/', 1)[-1][:-5]
+    namer = joinPathPartsNamer(pageparts=(-1,))
 
 
 class TheRockCocks(ComicControlScraper):
@@ -260,7 +265,7 @@ class ThreePanelSoul(ComicControlScraper):
     firstStripUrl = url + 'comic/a-test-comic'
 
 
-class TinyDickAdventures(_ParserScraper):
+class TinyDickAdventures(ParserScraper):
     url = 'https://www.lfg.co/'
     stripUrl = url + 'tda/strip/%s/'
     firstStripUrl = stripUrl % '1'
@@ -268,21 +273,17 @@ class TinyDickAdventures(_ParserScraper):
     prevSearch = '//a[@class="comic-nav-prev"]'
     latestSearch = '//div[@id="feature-tda-footer"]/a[contains(@href, "tda/strip/")]'
     starter = indirectStarter
-
-    def namer(self, imageUrl, pageUrl):
-        page = pageUrl.rstrip('/').rsplit('/', 1)[-1]
-        ext = imageUrl.rsplit('.', 1)[-1]
-        return page + '.' + ext
+    namer = joinPathPartsNamer(pageparts=(-1,))
 
 
 class ToonHole(ParserScraper):
     url = 'https://toonhole.com/'
     firstStripUrl = url + '2010/01/smart-questions-get-smart-answers/'
     imageSearch = '//img[d:class("wp-post-image")]'
-    prevSearch = '//a[@rel="prev"]'
-    latestSearch = '//a[@rel="bookmark"]'
+    prevSearch = '//a[d:class("previous-post")]'
+    latestSearch = '//h2[d:class("entry-title")]/a'
     starter = indirectStarter
-    namer = joinPathPartsNamer(imageparts=(-3, -2, -1))
+    namer = joinPathPartsNamer(imageparts=range(-3, 0))
 
 
 class TrippingOverYou(_BasicScraper):
@@ -306,39 +307,35 @@ class TumbleDryComics(WordPressScraper):
     def namer(self, image_url, page_url):
         # Most images have the date they were posted in the filename
         # For those that don't we can get the month and year from the image url
-        parts = image_url.rsplit('/', 3)
-        year = parts[1]
-        month = parts[2]
-        filename = parts[3]
+        year, month, filename = util.urlpathsplit(image_url)[-3:]
         if not filename.startswith(year):
             filename = year + "-" + month + "-" + filename
         return filename
 
 
-class Turnoff(_ParserScraper):
+class Turnoff(ParserScraper):
     name = 'turnoff'
     url = 'https://turnoff.us/'
     imageSearch = '//article[d:class("post-content")]//img'
     prevSearch = '//div[d:class("prev")]//a'
-    stripUrl = url + 'geek/%s'
+    nextSearch = '//a[text()="next"]'
+    stripUrl = url + 'geek/%s/'
     firstStripUrl = stripUrl % 'tcp-buddies'
     multipleImagesPerStrip = True
+    starter = bounceStarter
 
     @cached_property
     def comics_order(self):
         # Neither the images nor the pages contain information about dates or indices.
         # However we can extract the order of the images from the JavaScript.
         html = self.session.get(self.url).text
-        list_regex = compile(r"""^\s*"/geek/(.*)",\s*$""", flags=MULTILINE)
+        list_regex = compile(r"""^\s*"/geek/(.*?)/?",\s*$""", flags=MULTILINE)
         return list(reversed(list_regex.findall(html)))
 
     def namer(self, image_url, page_url):
-        comic_name = page_url.split('/')[-1]
-        try:
-            index = self.comics_order.index(comic_name) + 1
-        except ValueError:
-            index = len(self.comics_order)
-        file_name = image_url.split('/')[-1]
+        comic_name = util.urlpathsplit(page_url)[-1]
+        index = self.comics_order.index(comic_name) + 1
+        file_name = util.urlpathsplit(image_url)[-1]
         return "%03d-%s" % (index, file_name)
 
 
@@ -350,11 +347,13 @@ class TwinDragons(WordPressScraper):
 
 
 class TwoGuysAndGuy(ComicControlScraper):
-    url = 'https://twogag.com/'
+    url = ('https://web.archive.org/web/20230720180648/'
+        'https://twogag.com/')
     stripUrl = url + 'archives/%s'
     firstStripUrl = stripUrl % '4'
     help = 'Index format: number[-name]'
     adult = True
+    endOfLife = True
 
 
 class Twokinds(_ParserScraper):

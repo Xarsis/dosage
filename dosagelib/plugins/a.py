@@ -3,12 +3,13 @@
 # SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
 # SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
-from re import compile, MULTILINE
+from re import MULTILINE, compile
 
-from ..util import tagre
+from .. import util
+from ..helpers import bounceStarter, indirectStarter, joinPathPartsNamer
 from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
-from ..helpers import joinPathPartsNamer, bounceStarter, indirectStarter
-from .common import WordPressScraper, WordPressNavi, WordPressWebcomic
+from ..util import tagre
+from .common import WordPressNavi, WordPressScraper, WordPressWebcomic
 
 
 class AbstruseGoose(ParserScraper):
@@ -23,9 +24,9 @@ class AbstruseGoose(ParserScraper):
     nextSearch = '//a[contains(text(), "Next")]'
     help = 'Index format: n (unpadded)'
 
-    def namer(self, imageurl, pageurl):
-        index = int(pageurl.rsplit('/', 1)[1])
-        name = imageurl.rsplit('/', 1)[1]
+    def namer(self, image_url, page_url):
+        index = int(page_url.rsplit('/', 1)[1])
+        name = util.urlpathsplit(image_url)[-1]
         return 'c%03d-%s' % (index, name)
 
 
@@ -48,12 +49,12 @@ class Achewood(ParserScraper):
     firstStripUrl = stripUrl % '2001/10/01'
     imageSearch = '//img[d:class("comicImage")]'
     prevSearch = '//a[d:class("comic_prev")]'
-    namer = joinPathPartsNamer(pageparts=range(0, 2))
+    namer = joinPathPartsNamer(pageparts=range(0, 3))
     help = 'Index format: yyyy/mm/dd'
     endOfLife = True
 
 
-class AdventuresOfFifne(_ParserScraper):
+class AdventuresOfFifne(ParserScraper):
     stripUrl = 'http://fifine.purrsia.com/%s.html'
     url = stripUrl % 'COMICS'
     firstStripUrl = stripUrl % 'Fifine01'
@@ -62,9 +63,9 @@ class AdventuresOfFifne(_ParserScraper):
     multipleImagesPerStrip = True
     endOfLife = True
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Prepend chapter number to image filename
-        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = util.urlpathsplit(image_url)[-1]
         if filename[0] == 'p':
             filename = filename.replace('p', '1_p')
         filename = filename.replace('TIL', '2_TIL')
@@ -131,14 +132,15 @@ class Alice(WordPressScraper):
     endOfLife = True
 
 
-class AlienLovesPredator(_BasicScraper):
-    url = 'http://alienlovespredator.com/'
+class AlienLovesPredator(ParserScraper):
+    url = ('https://web.archive.org/web/20161207230717/'
+        'http://alienlovespredator.com/')
     stripUrl = url + '%s/'
     firstStripUrl = stripUrl % '2004/10/12/unavoidable-delay'
-    imageSearch = compile(tagre("img", "src", r'([^"]+)',
-                                after='border="1" alt="" width="750"'))
-    prevSearch = compile(tagre("a", "href", r'([^"]+)', after="prev"))
+    imageSearch = '//div[@id="comic"]//p//img'
+    prevSearch = '//a[@rel="prev"]'
     help = 'Index format: yyyy/mm/dd/name'
+    endOfLife = True
 
 
 class AlienShores(WordPressScraper):
@@ -172,7 +174,7 @@ class AlphaLunaSpanish(ParserScraper):
     prevSearch = '//a[@rel="prev"]'
 
 
-class Altermeta(_ParserScraper):
+class Altermeta(ParserScraper):
     url = 'http://altermeta.net/'
     stripUrl = url + 'archive.php?comic=%s'
     firstStripUrl = stripUrl % '0'
@@ -182,11 +184,11 @@ class Altermeta(_ParserScraper):
     starter = bounceStarter
     help = 'Index format: n (unpadded)'
 
-    def namer(self, imageUrl, pageUrl):
-        return pageUrl.rsplit('=', 1)[-1] + '_' + imageUrl.rsplit('/', 1)[-1]
+    def namer(self, image_url, page_url):
+        return page_url.rsplit('=', 1)[-1] + '_' + util.urlpathsplit(image_url)[-1]
 
 
-class AltermetaOld(_ParserScraper):
+class AltermetaOld(ParserScraper):
     url = Altermeta.url + 'oldarchive/index.php'
     stripUrl = Altermeta.url + 'oldarchive/archive.php?comic=%s'
     firstStripUrl = stripUrl % '0'
@@ -332,7 +334,7 @@ class AstronomyPOTD(ParserScraper):
 
     def namer(self, image_url, page_url):
         return '%s-%s' % (page_url.split('/')[-1].split('.')[0][2:],
-                          image_url.split('/')[-1].split('.')[0])
+                          util.urlpathsplit(image_url)[-1])
 
 
 class ATaleOfTails(WordPressScraper):

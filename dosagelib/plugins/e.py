@@ -4,12 +4,18 @@
 # SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
 import os
-from re import compile, IGNORECASE
+from re import IGNORECASE, compile
 
-from ..helpers import bounceStarter, indirectStarter
+from .. import util
+from ..helpers import bounceStarter, indirectStarter, joinPathPartsNamer
 from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
 from ..util import tagre
-from .common import ComicControlScraper, WordPressScraper, WordPressNavi
+from .common import (
+    ComicControlScraper,
+    WordPressNavi,
+    WordPressScraper,
+    WordPressWebcomic,
+)
 
 
 class EarthsongSaga(_ParserScraper):
@@ -115,11 +121,11 @@ class Erfworld(ParserScraper):
         """Skip pages without images."""
         return not self.match(data, self.imageSearch)
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix inconsistent filenames
-        filename = imageUrl.rsplit('/', 1)[-1]
-        page = pageUrl.replace('+', '-').rsplit('/', 2)
-        return '%s_%s_%s' % (page[1], page[2], filename)
+        filename = util.urlpathsplit(image_url)[-1]
+        page = util.urlpathsplit(page_url.replace('+', '-'))
+        return '_'.join(page[:1] + [filename])
 
     def getPrevUrl(self, url, data):
         # Fix missing navigation links between books
@@ -138,7 +144,7 @@ class Erfworld(ParserScraper):
         return super().getPrevUrl(url, data)
 
 
-class ErmaFelnaEDF(_ParserScraper):
+class ErmaFelnaEDF(ParserScraper):
     stripUrl = 'https://www.stevegallacci.com/archive/edf/%s'
     firstStripUrl = stripUrl % '0000/00/00'
     url = firstStripUrl
@@ -147,11 +153,11 @@ class ErmaFelnaEDF(_ParserScraper):
     latestSearch = '//a[@title="Current Comic"]'
     starter = indirectStarter
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix inconsistent filenames
-        postDate = pageUrl.rsplit('/', 3)
-        filename = imageUrl.rsplit('/', 1)[-1]
-        return '%s-%s-%s_%s' % (postDate[1], postDate[2], postDate[3], filename)
+        postDate = '-'.join(util.urlpathsplit(page_url)[-3:])
+        filename = util.urlpathsplit(image_url)[-1]
+        return f'{postDate}_{filename}'
 
 
 class ErrantStory(_BasicScraper):
@@ -189,8 +195,9 @@ class EvilInc(ParserScraper):
     firstStripUrl = url + 'comic/monday-3/'
 
 
-class Evilish(_ParserScraper):
-    url = 'http://evilish.pensandtales.com/'
+class Evilish(ParserScraper):
+    url = ('https://web.archive.org/web/20220125053115/'
+        'http://evilish.pensandtales.com/')
     stripUrl = url + '?date=%s'
     firstStripUrl = stripUrl % '20020630'
     imageSearch = '//img[@alt="Today\'s Comics"]'
@@ -204,6 +211,15 @@ class Evon(WordPressScraper):
     stripUrl = url + '?comic=%s'
     firstStripUrl = stripUrl % 'chapter-1'
     adult = True
+
+
+class ExorcismAcademy(WordPressWebcomic):
+    url = 'https://ea.asmodrawscomics.com/'
+    stripUrl = url + 'comic/%s/'
+    firstStripUrl = stripUrl % 'title-page'
+    multipleImagesPerStrip = True
+    adult = True
+    namer = joinPathPartsNamer(imageparts=range(-3, 0))
 
 
 class ExploitationNow(WordPressNavi):

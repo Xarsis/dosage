@@ -4,17 +4,21 @@
 # SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
 from __future__ import annotations
 
-import os
-import glob
 import codecs
 import contextlib
+import glob
+import logging
+import mimetypes
+import os
 from datetime import datetime
 from typing import Iterator
 
-from .output import out
-from .util import unquote, getFilename, urlopen, strsize
-from .events import getHandler
+from rich import filesize
 
+from .events import getHandler
+from .util import getFilename, unquote, urlopen
+
+logger = logging.getLogger(__name__)
 
 # Maximum content size for images
 MAX_IMAGE_BYTES = 1024 * 1024 * 20  # 20 MB
@@ -40,8 +44,6 @@ class ComicStrip:
     def getDownloader(self, url: str) -> ComicImage:
         """Get an image downloader."""
         filename = self.scraper.namer(url, self.strip_url)
-        if filename is None:
-            filename = url.rsplit('/', 1)[1]
         return ComicImage(self.scraper, url, self.strip_url, filename,
                           text=self.text)
 
@@ -51,13 +53,15 @@ class ComicImage:
 
     ChunkBytes = 1024 * 100  # 100KB
 
-    def __init__(self, scraper, url, referrer, filename, text=None):
+    def __init__(self, scraper, url, referrer, filename, text=None) -> None:
         """Set URL and filename."""
         self.scraper = scraper
         self.referrer = referrer
         self.url = url
         filename = getFilename(filename)
         self.filename, self.ext = os.path.splitext(filename)
+        if not self.ext:
+            self.ext = '.bin'
         self.text = text
 
     def connect(self, lastchange=None):
@@ -74,27 +78,23 @@ class ComicImage:
         content_type = unquote(self.urlobj.headers.get(
             'content-type', 'application/octet-stream'))
         content_type = content_type.split(';', 1)[0]
-        if '/' in content_type:
-            maintype, subtype = content_type.split('/', 1)
-        else:
-            maintype = content_type
-            subtype = None
+        maintype = content_type.split('/', 1)[0]
         if maintype != 'image' and content_type not in (
                 'application/octet-stream', 'application/x-shockwave-flash'):
             raise IOError('content type %r is not an image at %s' % (
                 content_type, self.url))
-        # Always use mime type for file extension if it is sane.
-        if maintype == 'image':
-            self.ext = '.' + subtype.replace('jpeg', 'jpg')
+        # Try to guess "better" extension from mime type
+        guessed_ext = mimetypes.guess_extension(content_type)
+        if guessed_ext and guessed_ext != '.bin':
+            self.ext = guessed_ext
         self.contentLength = int(self.urlobj.headers.get('content-length', 0))
-        out.debug(u'... filename = %r, ext = %r, contentLength = %d' % (
-            self.filename, self.ext, self.contentLength))
+        logger.debug('... filename = %r, ext = %r, contentLength = %d', self.filename, self.ext, self.contentLength)
 
     def save(self, basepath):
         """Save comic URL to filename on disk."""
         fnbase = self._fnbase(basepath)
         exist = [x for x in glob.glob(fnbase + ".*") if not x.endswith(".txt")]
-        out.info(u"Get image URL %s" % self.url, level=1)
+        logger.moreinfo("Get image URL %r", self.url)
         if len(exist) == 1:
             lastchange = os.path.getmtime(exist[0])
             self.connect(datetime.utcfromtimestamp(lastchange))
@@ -108,13 +108,13 @@ class ComicImage:
         if os.path.isfile(fn) and os.path.getsize(fn) >= self.contentLength:
             self._exist_err(fn)
             return fn, False
-        out.debug(u'Writing comic to file %s...' % fn)
+        logger.debug('Writing comic to file %r...', fn)
         with self.fileout(fn) as f:
             for chunk in self.urlobj.iter_content(self.ChunkBytes):
                 f.write(chunk)
         if self.text:
             fntext = fnbase + ".txt"
-            out.debug(u'Writing comic text to file %s...' % fntext)
+            logger.debug('Writing comic text to file %s...', fntext)
             with self.fileout(fntext, encoding='utf-8') as f:
                 f.write(self.text)
         getHandler().comicDownloaded(self, fn)
@@ -139,10 +139,10 @@ class ComicImage:
                 os.remove(filename)
             raise
         else:
-            out.info(u"Saved %s (%s)." % (filename, strsize(size)))
+            logger.info("Saved %r (%s).", filename, filesize.decimal(size))
 
     def _exist_err(self, fn):
-        out.info(u'Skipping existing file "%s".' % fn)
+        logger.info('Skipping existing file %r.', fn)
 
     def _fnbase(self, basepath):
         '''Determine the target base name of this comic file and make sure the

@@ -3,8 +3,9 @@
 # SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
 # SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
-from ..scraper import ParserScraper, _ParserScraper
+from .. import util
 from ..helpers import bounceStarter, indirectStarter
+from ..scraper import ParserScraper, _ParserScraper
 from .common import ComicControlScraper, WordPressScraper
 
 
@@ -47,9 +48,9 @@ class LeastICouldDo(ParserScraper):
     url = 'https://leasticoulddo.com/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % '20030210'
-    imageSearch = '//img[d:class("comic")]'
+    imageSearch = '//div[d:class("single-post-comic")]//img'
     prevSearch = '//a[@rel="prev"]'
-    latestSearch = '//a[@id="latest-comic"]'
+    latestSearch = '//a[contains(@href, "/comic/")]'
     starter = indirectStarter
     help = 'Index format: yyyymmdd'
 
@@ -96,9 +97,9 @@ class LifeAsRendered(ParserScraper):
         '0577': '05extra',
     }
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix inconsistent filenames
-        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = util.urlpathsplit(image_url)[-1]
         return filename.replace('ReN', 'N').replace('N01P', 'A02S')
 
     def extract_image_urls(self, url, data):
@@ -109,27 +110,27 @@ class LifeAsRendered(ParserScraper):
 
     def getPrevUrl(self, url, data):
         # Fix broken navigation links
-        page = url.rstrip('/').rsplit('/', 1)[-1]
+        page = util.urlpathsplit(url)[-1]
         if page in self.nav:
             return self.stripUrl % self.nav[page]
-        return super(LifeAsRendered, self).getPrevUrl(url, data)
+        return super().getPrevUrl(url, data)
 
     def fetchText(self, url, data, textSearch, optional):
         # Save final summary text
         if url == self.firstStripUrl:
             url = self.stripUrl % 'the-end'
             data = self.getPage(url)
-            return super(LifeAsRendered, self).fetchText(url, data, textSearch, optional)
+            return super().fetchText(url, data, textSearch, optional)
         return None
 
 
 class LilithsWord(ComicControlScraper):
-    url = 'http://www.lilithword.com/'
+    url = 'https://www.lilithword.com/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % 'prologue-page-00'
 
-    def namer(self, imageUrl, pageUrl):
-        return imageUrl.rsplit('/', 1)[-1].split('-', 1)[1]
+    def namer(self, image_url, page_url):
+        return util.urlpathsplit(image_url)[-1].split('-', 1)[1]
 
 
 class LittleGamers(ParserScraper):
@@ -194,5 +195,5 @@ class LookingForGroup(ParserScraper):
     help = 'Index format: nnn'
 
     def namer(self, imageUrl, pageUrl):
-        page = pageUrl.rstrip('/').rsplit('/', 1)[-1]
+        page = util.urlpathsplit(pageUrl)[-1]
         return page.replace('2967', '647')

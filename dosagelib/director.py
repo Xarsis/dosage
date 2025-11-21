@@ -1,19 +1,23 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
-# Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2022 Tobias Gruetzmacher
-# Copyright (C) 2019-2020 Daniel Ring
+# SPDX-FileCopyrightText: © 2004 Tristan Seligmann and Jonathan Jacobs
+# SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
+# SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
+# SPDX-FileCopyrightText: © 2019 Daniel Ring
+from __future__ import annotations
+
+import _thread
+import logging
 import os
 import re
 import threading
-import _thread
-from queue import Queue, Empty
-from typing import Collection, Dict
+from queue import Empty, Queue
+from typing import Collection
 from urllib.parse import urlparse
 
-from .output import out
-from .scraper import scrapers as scrapercache
 from . import events
+from .scraper import scrapers as scrapercache
+
+logger = logging.getLogger(__name__)
 
 
 class ComicQueue(Queue):
@@ -43,7 +47,7 @@ class ComicQueue(Queue):
 
 
 # ensure threads download only from one host at a time
-host_locks: Dict[str, threading.Lock] = {}
+host_locks: dict[str, threading.Lock] = {}
 
 
 def get_hostname(url):
@@ -63,7 +67,7 @@ def get_host_lock(url):
 class ComicGetter(threading.Thread):
     """Get all strips of a comic in a thread."""
 
-    def __init__(self, options, jobs):
+    def __init__(self, options, jobs) -> None:
         """Store options."""
         super(ComicGetter, self).__init__()
         self.options = options
@@ -106,13 +110,13 @@ class ComicGetter(threading.Thread):
             numstrips = 1
         try:
             if scraperobj.isComplete(self.options.basepath):
-                out.info(u"All comics are already downloaded.")
+                logger.info("All comics are already downloaded.")
                 return 0
             for strip in scraperobj.getStrips(numstrips):
                 skipped = self.saveComicStrip(strip)
                 if skipped and self.options.cont:
                     # stop when retrieval skipped an image for one comic strip
-                    out.info(u"Stop retrieval because image file already exists")
+                    logger.info("Stop retrieval because image file already exists")
                     break
                 if self.stopped:
                     break
@@ -122,7 +126,7 @@ class ComicGetter(threading.Thread):
                                             scraperobj.indexes):
                 scraperobj.setComplete(self.options.basepath)
         except Exception as msg:
-            out.exception(msg)
+            logger.exception(msg)  # noqa: LOG010 # FIXME: Legacy stuff, needs refactor
             self.errors += 1
 
     def saveComicStrip(self, strip):
@@ -139,8 +143,8 @@ class ComicGetter(threading.Thread):
                 if self.stopped:
                     break
             except Exception as msg:
-                out.exception('Could not save image at {} to {}: {!r}'.format(
-                    image.referrer, image.filename, msg))
+                logger.exception('Could not save image at %r to %r: %s',
+                    image.referrer, image.filename, msg)
                 self.errors += 1
         return allskipped
 
@@ -174,10 +178,10 @@ def getComics(options):
         for t in threads:
             errors += t.errors
     except ValueError as msg:
-        out.exception(msg)
+        logger.exception(msg)  # noqa: LOG010
         errors += 1
     except KeyboardInterrupt:
-        out.warn("Interrupted! Waiting for download threads to finish.")
+        logger.warning("Interrupted! Waiting for download threads to finish.")
     finally:
         for t in threads:
             t.stop()
@@ -192,9 +196,8 @@ def getScrapers(comics: Collection[str], basepath: str, adult=True, listing=Fals
     if '@' in comics:
         # only scrapers whose directory already exists
         if len(comics) > 1:
-            out.warn(u"using '@' as comic name ignores all other specified comics.")
-        for comic in get_existing_comics(basepath, adult, listing):
-            yield comic
+            logger.warning("using '@' as comic name ignores all other specified comics.")
+        yield from get_existing_comics(basepath, adult, listing)
     else:
         # get only selected comic scrapers
         # store them in a set to eliminate duplicates
@@ -245,11 +248,10 @@ def shouldRunScraper(scraperobj, adult=True, listing=False):
 
 def warn_adult(scraperobj):
     """Print warning about adult content."""
-    out.warn(u"skipping adult comic {};"
-        " use the --adult option to confirm your age".format(scraperobj.name))
+    logger.warning("skipping adult comic %s; use the --adult option to confirm your age",
+        scraperobj.name)
 
 
 def warn_disabled(scraperobj, reasons):
     """Print warning about disabled comic modules."""
-    out.warn(u"Skipping comic {}: {}".format(
-        scraperobj.name, ' '.join(reasons.values())))
+    logger.warning("Skipping comic %s: %s", scraperobj.name, ' '.join(reasons.values()))

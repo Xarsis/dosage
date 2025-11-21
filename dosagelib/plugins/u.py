@@ -10,10 +10,11 @@ import re
 from contextlib import suppress
 from re import compile
 
-from ..scraper import BasicScraper, ParserScraper
+from .. import util
 from ..helpers import indirectStarter
+from ..scraper import BasicScraper, ParserScraper
 from ..util import tagre
-from .common import ComicControlScraper, WordPressScraper, WordPressNavi
+from .common import ComicControlScraper, WordPressNavi, WordPressScraper
 
 
 class UberQuest(ParserScraper):
@@ -58,9 +59,9 @@ class unDivine(ComicControlScraper):
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % 'page-1'
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix inconsistent filenames
-        filename = imageUrl.rsplit('/', 1)[-1].replace(' ', '-')
+        filename = util.urlpathsplit(image_url)[-1].replace(' ', '-')
         filename = filename.replace('10B311D9-0992-4D74-AEB8-DAB714DA67C6', 'UD-322')
         filename = filename.replace('99266624-7EF7-4E99-9EC9-DDB5F59CBDFD', 'UD-311')
         filename = filename.replace('33C6A5A1-F703-4A0A-BCD5-DE1A09359D8E', 'UD-310')
@@ -117,8 +118,8 @@ class Unsounded(ParserScraper):
         return None
 
     def namer(self, image_url, page_url):
-        filename = image_url.rsplit('/', 1)[-1]
-        pagename = page_url.rsplit('/', 1)[-1]
+        filename = util.urlpathsplit(image_url)[-1]
+        pagename = util.urlpathsplit(page_url)[-1]
         if pagename.split('.', 1)[0] != filename.split('.', 1)[0]:
             filename = pagename.split('_', 1)[0] + '_' + filename
         return filename
@@ -140,5 +141,5 @@ class UrgentTransformationCrisis(WordPressScraper):
 
     def namer(self, imageUrl, pageUrl):
         # Fix inconsistent filenames
-        filename = imageUrl.rsplit('/', 1)[-1].rsplit('?', 1)[0]
+        filename = util.urlpathsplit(imageUrl)[-1]
         return filename.replace('FVLYHD', 'LYHDpage').replace('UTC084web', '20091218c')

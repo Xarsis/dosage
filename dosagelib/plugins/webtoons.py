@@ -9,8 +9,11 @@ class WebToons(ParserScraper):
     prevSearch = '//a[contains(@class, "_prevEpisode")]'
     multipleImagesPerStrip = True
 
-    def __init__(self, name: str, path: str, titlenum: int):
+    def __init__(self, name: str, path: str, titlenum: int) -> None:
         super().__init__('WebToons/' + name)
+        # Since pages on WebToon are composed of many images, we can probably
+        # move a lot faster then default
+        self.session.add_throttle('webtoon-phinf.pstatic.net', 0.0, 0.05)
 
         baseUrl = 'https://www.webtoons.com/en/'
         self.url = baseUrl + path + '/episode/viewer?title_no=' + str(titlenum)
@@ -18,7 +21,7 @@ class WebToons(ParserScraper):
         self.stripUrl = self.url + '&episode_no=%s'
         self.firstStripUrl = self.stripUrl % '1'
 
-    def starter(self):
+    def starter(self) -> str:
         # Avoid age/GDPR gate
         for cookie in ('needGDPR', 'needCCPA', 'needCOPPA'):
             self.session.cookies.set(cookie, 'false', domain='webtoons.com')
@@ -45,7 +48,7 @@ class WebToons(ParserScraper):
         return "%s-%03d.%s" % (episodeNum, imageNum, imageExt)
 
     @classmethod
-    def getmodules(cls):  # noqa: CFQ001
+    def getmodules(cls):
         return (
             cls('1000', 'action/one-thousand', 1217),
             cls('10thDimensionBoys', 'comedy/10th-dimension-boys', 71),
@@ -55,7 +58,6 @@ class WebToons(ParserScraper):
             cls('99ReinforcedStick', 'comedy/99-reinforced-wooden-stick', 4286),
             cls('ABittersweetLife', 'slice-of-life/a-bittersweet-life', 294),
             cls('AboutDeath', 'drama/about-death', 82),
-            cls('ABudgiesLife', 'slice-of-life/its-a-budgies-life', 985),
             cls('Acception', 'drama/acception', 1513),
             cls('AcesWild', 'challenge/aces-wild', 689025),
             cls('Acursian', 'supernatural/acursian', 1452),
@@ -71,13 +73,11 @@ class WebToons(ParserScraper):
             cls('AlwaysHuman', 'romance/always-human', 557),
             cls('AMPED', 'challenge/amped', 532009),
             cls('Annarasumanara', 'drama/annarasumanara', 77),
-            cls('Anthronauts', 'challenge/anthronauts', 358917),
             cls('AphroditeIX', 'sf/aphroditeix', 1451),
             cls('ApocalypticHorseplay', 'supernatural/apocalyptic-horseplay', 635),
             cls('AprilFlowers', 'fantasy/april-flowers', 1363),
             cls('Arma', 'super-hero/arma', 1640),
             cls('AsPerUsual', 'slice-of-life/as-per-usual', 599),
-            cls('AssassinRoommate', 'romance/assassin-roommate', 1050),
             cls('AthenaComplex', 'fantasy/athena-complex', 867),
             cls('AuraFromAnotherPlanet', 'comedy/aura-from-another-planet', 369),
             cls('AverageAdventuresOfAnAverageGirl', 'slice-of-life/average-adventures-of-an-average-girl', 401),
@@ -115,11 +115,11 @@ class WebToons(ParserScraper):
             cls('CheeseInTheTrap', 'drama/cheese-in-the-trap', 99),
             cls('CherryBlossoms', 'romance/cherry-blossoms', 1005),
             cls('Chiller', 'thriller/chiller', 536),
-            cls('ChocoLatte', 'romance/choco-latte', 1691),
             cls('CityOfBlank', 'sf/city-of-blank', 1895),
             cls('CityOfWalls', 'drama/city-of-wall', 505),
             cls('CityVamps', 'challenge/city-vamps-', 119224),
             cls('ClawShot', 'challenge/clawshot', 621465),
+            cls('ClinicOfHorrors', 'supernatural/clinic-of-horrors', 3414),
             cls('ClusterFudge', 'slice-of-life/cluster-fudge', 355),
             cls('CodeAdam', 'action/code-adam', 1657),
             cls('CookingComically', 'tiptoon/cooking-comically', 622),
@@ -172,6 +172,7 @@ class WebToons(ParserScraper):
             cls('EpicV', 'comedy/epic-v', 353),
             cls('EscapeRoom', 'thriller/escape-room', 1815),
             cls('EverywhereAndNowhere', 'comedy/everywhere-and-nowhere', 1598),
+            cls('FalseKnees', 'canvas/false-knees', 79544),
             cls('FAMILYMAN', 'drama/family-man', 85),
             cls('FantasySketchTheGame', 'sf/fantasy-sketch', 1020),
             cls('Faust', 'supernatural/faust', 522),
@@ -232,6 +233,7 @@ class WebToons(ParserScraper):
             cls('ItsMine', 'drama/its-mine', 2010),
             cls('JackieRose', 'supernatural/jackie-rose', 613),
             cls('JingleJungle', 'slice-of-life/jingle-jungle', 282),
+            cls('JustACat', 'fantasy/just-a-cat', 7633),
             cls('JustAskYuli', 'slice-of-life/just-ask-yuli', 402),
             cls('JustForKicks', 'slice-of-life/just-for-kicks', 1152),
             cls('JustFriends', 'challenge/just-friends', 190722),
@@ -305,13 +307,13 @@ class WebToons(ParserScraper):
             cls('MySClassHunter', 'action/my-s-class-hunters', 3963),
             cls('MythicItemObtained', 'fantasy/mythic-item-obtained', 4582),
             cls('MyWallflowerKiss', 'challenge/my-wallflower-kiss', 151869),
+            cls('MyWifeIsAHalfDragon', 'canvas/my-wife-is-a-half-dragon', 1013669),
             cls('NanoList', 'sf/nano-list', 700),
             cls('NationalDogDay2016', 'slice-of-life/national-dog-day', 747),
             cls('NewLifeProject', 'comedy/new-life-project', 279),
             cls('Newman', 'fantasy/newman', 405),
             cls('NewNormalClass8', 'drama/new-normal-class-8', 100),
             cls('Nicholalala', 'slice-of-life/nicholalala', 418),
-            cls('NightmareFactory', 'thriller/nightmare-factory', 616),
             cls('Noblesse', 'action/noblesse', 87),
             cls('NoblesseRaisAdventure', 'action/noblesse-spin-off', 608),
             cls('NoScope', 'sports/no-scope', 1572),
@@ -410,6 +412,7 @@ class WebToons(ParserScraper):
             cls('TheGreenhouse', 'challenge/the-greenhouse-gl', 278312),
             cls('TheKissBet', 'romance/the-kiss-bet', 1617),
             cls('TheLifeOfTheThreeBears', 'slice-of-life/the-life-of-the-three-bears', 390),
+            cls('TheLittleTrashmaid', 'canvas/the-little-trashmaid', 300138),
             cls('ThePurpleHeart', 'super-hero/the-purple-heart', 723),
             cls('TheRedBook', 'horror/the-red-book', 467),
             cls('TheRedHook', 'super-hero/the-red-hook', 643),
@@ -425,6 +428,7 @@ class WebToons(ParserScraper):
             cls('TheWeeklyRoll', 'challenge/the-weekly-roll', 358889),
             cls('TheWeightOfOurSky', 'historical/the-weight-of-our-sky', 1739),
             cls('TheWitchAndTheBull', 'fantasy/the-witch-and-the-bull', 1892),
+            cls('TheWolfAndRedRidingHood', 'comedy/wolf-and-red-riding-hood', 2142),
             cls('TheWolfmanOfWulvershire', 'mystery/the-wolfman-of-wulvershire', 1784),
             cls('TheWorldWhereIBelong', 'supernatural/the-world-where-i-belong', 1318),
             cls('TheWrathAndTheDawn', 'fantasy/the-wrath-and-the-dawn', 1772),

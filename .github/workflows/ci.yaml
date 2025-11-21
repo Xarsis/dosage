@@ -5,23 +5,33 @@ on:
   - push
   - pull_request
 
+permissions:
+  contents: read
+  id-token: write
+
 env:
-  DEFAULT_PYTHON: '3.13'
+  DEFAULT_PYTHON: '3.14'
 
 jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Run Pre-Commit
+        uses: pre-commit/action@v3.0.1
+        if: ${{ matrix.python-version == env.DEFAULT_PYTHON }}
+        continue-on-error: true
 
       - name: Install dependencies
         run: |
@@ -29,19 +39,16 @@ jobs:
 
       - name: Test with tox
         run: tox
-        if: ${{ matrix.python-version != env.DEFAULT_PYTHON }}
 
-      - name: Test with tox (and upload coverage)
-        uses: paambaati/codeclimate-action@v9.0.0
-        if: ${{ matrix.python-version == env.DEFAULT_PYTHON }}
-        env:
-          CC_TEST_REPORTER_ID: 2a411f596959fc32f5d73f3ba7cef8cc4d5733299d742dbfc97fd6c190b9010c
+      - name: Submit Coverage to Qlty  # New "name" of CodeClimate Quality
+        uses: qltysh/qlty-action/coverage@v2
+        # OIDC on "external" pull requests doesn't work
+        if: ${{ matrix.python-version == env.DEFAULT_PYTHON && github.event.pull_request.head.repo.full_name == github.repository }}
         with:
-          coverageCommand: tox
-          coverageLocations: |
-            ${{ github.workspace }}/.tox/reports/*/coverage.xml:coverage.py
-          prefix: ${{ github.workspace }}/.tox/py313/lib/python3.13/site-packages
+          oidc: true
+          files: '.tox/reports/*/coverage.lcov'
 
-      - uses: codecov/codecov-action@v5
+      - name: Submit Coverage to CodeCov
+        uses: codecov/codecov-action@v5
         with:
           directory: '.tox/reports'

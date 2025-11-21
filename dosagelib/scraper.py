@@ -5,40 +5,34 @@
 from __future__ import annotations
 
 import html
+import logging
 import os
+import pathlib
 import re
 import warnings
+from typing import Collection, Dict, List, Optional, Pattern, Sequence, Union
 from urllib.parse import urljoin
-from typing import Collection, Dict, List, Optional, Type, Union, Pattern, Sequence
 
 import lxml
 from lxml.html.defs import link_attrs as lxml_link_attrs
-
-try:
-    import cssselect
-except ImportError:
-    cssselect = None
 
 try:
     import pycountry
 except ImportError:
     pycountry = None
 
-from . import configuration, http, languages, loader
-from .util import (get_page, makeSequence, get_system_uid, tagre, normaliseURL,
-        prettyMatcherList, uniq)
+from . import configuration, http, languages, loader, util, xml
 from .comic import ComicStrip
-from .output import out
 from .events import getHandler
-from .xml import NS
 
-
+logger = logging.getLogger(__name__)
 ARCHIVE_ORG_URL = re.compile(r'https?://web\.archive\.org/web/[^/]*/')
 html_link_attrs = lxml_link_attrs - {'usemap'}
 
 
 if lxml.etree.LIBXML_VERSION < (2, 9, 3):
-    warnings.warn('Your libxml2 is very old (< 2.9.3), some dosage modules might missbehave')
+    warnings.warn(  # noqa: B028 - false positive
+        'Your libxml2 is very old (< 2.9.3), some dosage modules might missbehave')
 
 
 class GeoblockedException(IOError):
@@ -141,20 +135,19 @@ class Scraper:
         # map modifier function on image URLs
         urls = [self.imageUrlModifier(x, data) for x in urls]
         # remove duplicate URLs
-        urls = uniq(urls)
+        urls = util.uniq(urls)
         if len(urls) > 1 and not self.multipleImagesPerStrip:
-            out.warn(
-                u"Found %d images instead of 1 at %s with expressions %s" %
-                (len(urls), url, prettyMatcherList(self.imageSearch)))
+            logger.warning("Found %d images instead of 1 at %s with expressions %r",
+                len(urls), url, util.prettyMatcherList(self.imageSearch))
             image = urls[0]
-            out.warn("Choosing image %s" % image)
+            logger.warning("Choosing image %r", image)
             urls = (image,)
         elif not urls:
-            out.warn("Found no images at %s with expressions %s" % (url,
-                     prettyMatcherList(self.imageSearch)))
+            logger.warning("Found no images at %r with expressions %r", url,
+                util.prettyMatcherList(self.imageSearch))
         if self.textSearch:
             text = self.fetchText(url, data, self.textSearch,
-                                  optional=self.textOptional)
+                optional=self.textOptional)
         else:
             text = None
         return ComicStrip(self, url, urls, text=text)
@@ -179,7 +172,7 @@ class Scraper:
             urls = [self.starter()]
         if self.adult:
             msg += u" (including adult content)"
-        out.info(msg)
+        logger.info(msg)
         for url in urls:
             for strip in self.getStripsFor(url, maxstrips):
                 yield strip
@@ -190,19 +183,18 @@ class Scraper:
         self.hitFirstStripUrl = False
         seen_urls = set()
         while url:
-            out.info(u'Get strip URL %s' % url, level=1)
+            logger.moreinfo('Get strip URL %r', url)
             data = self.getPage(url)
             if self.shouldSkipUrl(url, data):
-                out.info(u'Skipping URL %s' % url)
+                logger.info('Skipping URL %r', url)
                 self.skippedUrls.add(url)
             else:
                 try:
                     yield self.getComicStrip(url, data)
                 except ValueError as msg:
-                    # image not found
-                    out.exception(msg)
+                    logger.exception(msg)  # noqa: LOG010
             if self.isfirststrip(url):
-                out.debug(u"Stop at first URL %s" % url)
+                logger.debug("Stop at first URL %r", url)
                 self.hitFirstStripUrl = True
                 break
             if maxstrips is not None:
@@ -213,7 +205,7 @@ class Scraper:
             seen_urls.add(url)
             if prevUrl in seen_urls:
                 # avoid recursive URL loops
-                out.warn(u"Already seen previous URL %r" % prevUrl)
+                logger.warning("Already seen previous URL %r", prevUrl)
                 break
             url = prevUrl
 
@@ -236,24 +228,26 @@ class Scraper:
                 prevUrl = self.fetchUrl(url, data, self.prevSearch)
             except ValueError as msg:
                 # assume there is no previous URL, but print a warning
-                out.warn(u"%s Assuming no previous comic strips exist." % msg)
+                logger.warning("%s Assuming no previous comic strips exist.", msg)
             else:
                 prevUrl = self.link_modifier(url, prevUrl)
-                out.debug(u"Found previous URL %s" % prevUrl)
+                logger.debug("Found previous URL %r", prevUrl)
                 getHandler().comicPageLink(self, url, prevUrl)
         return prevUrl
 
     def getIndexStripUrl(self, index: str) -> str:
         """Get comic strip URL from index."""
+        if not self.stripUrl:
+            raise ValueError("Getting by index is not supported!")
         return self.stripUrl % index
 
-    def starter(self) -> str:
+    def starter(self) -> str | None:
         """Get starter URL from where to scrape comic strips."""
         return self.url
 
-    def namer(self, image_url: str, page_url: str) -> str | None:
+    def namer(self, image_url: str, page_url: str) -> str:
         """Return filename for given image and page URL."""
-        return
+        return util.urlpathsplit(image_url)[-1]
 
     def link_modifier(self, fromurl: str, tourl: str) -> str:
         """Optional modification of parsed link (previous/back/latest) URLs.
@@ -271,7 +265,7 @@ class Scraper:
 
     def vote(self) -> None:
         """Cast a public vote for this comic."""
-        uid = get_system_uid()
+        uid = util.get_system_uid()
         data = {"name": self.name.replace('/', '_'), "uid": uid}
         response = self.session.post(configuration.VoteUrl, data=data)
         response.raise_for_status()
@@ -323,7 +317,7 @@ class Scraper:
         methods should be able to use the data if they so desire... (Affected
         methods: shouldSkipUrl, imageUrlModifier)
         """
-        return get_page(url, self.session, allow_errors=self.allow_errors)
+        return util.get_page(url, self.session, allow_errors=self.allow_errors)
 
     def extract_image_urls(self, url, data):
         """
@@ -384,7 +378,7 @@ class BasicScraper(Scraper):
     any).
     """
 
-    BASE_SEARCH = re.compile(tagre("base", "href", '([^"]*)'))
+    BASE_SEARCH = re.compile(util.tagre("base", "href", '([^"]*)'))
 
     def getPage(self, url):
         content = super().getPage(url).text
@@ -400,16 +394,15 @@ class BasicScraper(Scraper):
     def fetchUrls(self, url, data, urlSearch):
         """Search all entries for given URL pattern(s) in a HTML page."""
         searchUrls = []
-        searches = makeSequence(urlSearch)
+        searches = util.makeSequence(urlSearch)
         for search in searches:
             for match in search.finditer(data[0]):
                 searchUrl = match.group(1)
                 if not searchUrl:
                     raise ValueError("Pattern %s matched empty URL at %s." %
                                      (search.pattern, url))
-                out.debug(u'matched URL %r with pattern %s' %
-                          (searchUrl, search.pattern))
-                searchUrls.append(normaliseURL(urljoin(data[1], searchUrl)))
+                logger.debug('matched URL %r with pattern %r', searchUrl, search.pattern)
+                searchUrls.append(util.normaliseURL(urljoin(data[1], searchUrl)))
             if searchUrls:
                 # do not search other links if one pattern matched
                 break
@@ -425,8 +418,7 @@ class BasicScraper(Scraper):
             match = textSearch.search(data[0])
             if match:
                 text = match.group(1)
-                out.debug(u'matched text %r with pattern %s' %
-                          (text, textSearch.pattern))
+                logger.debug('matched text %r with pattern %r', text, textSearch.pattern)
                 return html.unescape(text).strip()
             if optional:
                 return None
@@ -458,10 +450,6 @@ class ParserScraper(Scraper):
     XML_DECL = re.compile(
         r'^(<\?xml[^>]+)\s+encoding\s*=\s*["\'][^"\']*["\'](\s*\?>|)', re.U)
 
-    # Switch between CSS and XPath selectors for this class. Since CSS needs
-    # another Python module, XPath is the default for now.
-    css = False
-
     def getPage(self, url):
         page = super().getPage(url)
         if page.encoding:
@@ -491,7 +479,7 @@ class ParserScraper(Scraper):
                         searchUrl = match.get(attrib)
             except AttributeError:
                 searchUrl = str(match)
-            out.debug(u'Matched URL %r with pattern %s' % (searchUrl, search))
+            logger.debug('Matched URL %r with pattern %r', searchUrl, search)
             if searchUrl is not None:
                 searchUrls.append(searchUrl)
 
@@ -510,7 +498,7 @@ class ParserScraper(Scraper):
                 text.append(match.text_content())
             except AttributeError:
                 text.append(match)
-            out.debug(u'Matched text %r with XPath %s' % (text, search))
+            logger.debug('Matched text %r with XPath %r', text, search)
         text = u' '.join(text)
         if text.strip() == '':
             if optional:
@@ -521,7 +509,7 @@ class ParserScraper(Scraper):
         return text.strip()
 
     def _matchPattern(self, data, patterns):
-        patterns = makeSequence(patterns)
+        patterns = util.makeSequence(patterns)
         for search in patterns:
             matched = False
             for match in self.match(data, search):
@@ -533,19 +521,8 @@ class ParserScraper(Scraper):
                 break
 
     def match(self, data, pattern):
-        """Match a pattern (XPath/CSS) against a page."""
-        if self.css:
-            return data.cssselect(pattern)
-        else:
-            return data.xpath(pattern, namespaces=NS)
-
-    def getDisabledReasons(self):
-        res = {}
-        if self.css and cssselect is None:
-            res['css'] = (u"This module needs the cssselect " +
-                          u"(python-cssselect) python module which is " +
-                          u"not installed.")
-        return res
+        """Match an XPath pattern against a page."""
+        return data.xpath(pattern, namespaces=xml.NS)
 
 
 # Legacy aliases
@@ -558,9 +535,9 @@ class Cache:
     This is cached, since iterating & loading a complete package might be quite
     slow.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         self.data: List[Scraper] = []
-        self.userdirs = set()
+        self.userdirs: set[pathlib.Path] = set()
 
     def find(self, comic: str) -> Scraper:
         """Find a comic scraper object based on its name. This prefers a
@@ -586,17 +563,17 @@ class Cache:
         return candidates[0]
 
     def load(self) -> None:
-        out.debug("Loading comic modules...")
+        logger.debug("Loading comic modules...")
         modules = 0
         classes = 0
         for module in loader.get_plugin_modules():
             modules += 1
             classes += self.addmodule(module)
         self.validate()
-        out.debug("... %d scrapers loaded from %d classes in %d modules." % (
-            len(self.data), classes, modules))
+        logger.debug("... %d scrapers loaded from %d classes in %d modules.",
+            len(self.data), classes, modules)
 
-    def adddir(self, path) -> None:
+    def adddir(self, path: pathlib.Path) -> None:
         """Add an additional directory with python modules to the scraper list.
         These are handled as if the were part of the plugins package.
         """
@@ -606,15 +583,15 @@ class Cache:
             self.load()
         modules = 0
         classes = 0
-        out.debug("Loading user scrapers from '{}'...".format(path))
+        logger.debug("Loading user scrapers from %r...", path)
         for module in loader.get_plugin_modules_from_dir(path):
             modules += 1
             classes += self.addmodule(module)
         self.validate()
         self.userdirs.add(path)
         if classes > 0:
-            out.debug("Added %d user classes from %d modules." % (
-                classes, modules))
+            logger.debug("Added %d user classes from %d modules.",
+                classes, modules)
 
     def addmodule(self, module) -> int:
         """Adds all valid plugin classes from the specified module to the cache.
@@ -626,7 +603,7 @@ class Cache:
             self.data.extend(plugin.getmodules())
         return classes
 
-    def all(self, include_removed=False) -> List[Scraper]:
+    def all(self, include_removed=False) -> list[Scraper]:
         """Return all comic scraper classes in the plugins directory.
         @return: list of Scraper classes
         @rtype: list of Scraper

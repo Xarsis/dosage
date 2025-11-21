@@ -5,10 +5,10 @@
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
 from re import compile, escape
 
-from ..helpers import bounceStarter, indirectStarter
+from ..helpers import bounceStarter, indirectStarter, joinPathPartsNamer
 from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
 from ..util import tagre
-from .common import WordPressScraper, WordPressNavi
+from .common import WordPressNavi, WordPressScraper
 
 
 class OccasionalComicsDisorder(WordPressScraper):
@@ -81,13 +81,15 @@ class OkCancel(_BasicScraper):
     help = 'Index format: yyyymmdd'
 
 
-class OmakeTheater(_ParserScraper):
-    url = 'http://omaketheater.com/comic/'
-    stripUrl = url + '%s'
+class OmakeTheater(ParserScraper):
+    url = 'https://omaketheater.com/comics/'
+    stripUrl = url + '%s/'
     firstStripUrl = stripUrl % '1'
-    css = True
-    imageSearch = ".comicImage img"
-    prevSearch = ".previous a"
+    imageSearch = "//figure/img"
+    prevSearch = "//a[@id='previous']"
+    latestSearch = "//li[d:class('home')]/a"
+    starter = indirectStarter
+    namer = joinPathPartsNamer(pageparts=(-1,), imageparts=(-1,))
     help = 'Index format: number (unpadded)'
 
 
@@ -114,10 +116,7 @@ class OrderOfTheBlackDog(WordPressScraper):
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'issue-1-cover'
     starter = bounceStarter
-
-    def namer(self, imageUrl, pageUrl):
-        # Fix inconsistent filenames
-        return '%s.%s' % (pageUrl.rsplit('/', 2)[-2], imageUrl.rsplit('.', 1)[-1])
+    namer = joinPathPartsNamer(pageparts=(-1,))
 
 
 class OriginalLife(_ParserScraper):
@@ -146,13 +145,13 @@ class OutOfPlacers(WordPressScraper):
     adult = True
 
 
-class OverCompensating(_BasicScraper):
-    url = 'http://www.overcompensating.com/'
-    stripUrl = url + 'oc/index.php?comic=%s'
-    firstStripUrl = stripUrl % '0'
-    imageSearch = compile(tagre("img", "src", r'(/oc/comics/[^"]+)'))
-    prevSearch = compile(tagre("a", "href", r'(/oc/index\.php\?comic=\d+)',
-                               after="go back"))
+class OverCompensating(ParserScraper):
+    stripUrl = 'https://www.wigucomics.com/oc/index.php?comic=%s'
+    url = stripUrl % '-1'
+    firstStripUrl = stripUrl % '1'
+    imageSearch = '//center//img'
+    prevSearch = '//a[@alt="go back"]'
+    endOfLife = True
     help = 'Index format: number'
 
 

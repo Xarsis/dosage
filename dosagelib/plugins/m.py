@@ -4,9 +4,9 @@
 # SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
 import json
-from re import compile, IGNORECASE
+from re import IGNORECASE, compile
 
-from ..helpers import indirectStarter
+from ..helpers import indirectStarter, joinPathPartsNamer
 from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
 from ..util import tagre
 from .common import ComicControlScraper, WordPressScraper, WordPressWebcomic
@@ -38,13 +38,10 @@ class MagickChicks(ComicControlScraper):
     endOfLife = True
 
 
-class ManlyGuysDoingManlyThings(_ParserScraper):
-    url = 'http://thepunchlineismachismo.com/'
+class ManlyGuysDoingManlyThings(WordPressScraper):
+    url = 'https://thepunchlineismachismo.com/'
     stripUrl = url + 'archives/comic/%s'
     firstStripUrl = stripUrl % '02222010'
-    css = True
-    imageSearch = "#comic img"
-    prevSearch = ".comic-nav-previous"
     help = 'Index format: ddmmyyyy'
 
 
@@ -63,17 +60,14 @@ class Marilith(ParserScraper):
     help = 'Index format: yyyymmdd'
 
 
-class MarriedToTheSea(_ParserScraper):
+class MarriedToTheSea(ParserScraper):
     url = 'http://marriedtothesea.com/'
     stripUrl = url + '%s'
     firstStripUrl = stripUrl % '022806'
     imageSearch = '//div[d:class("jumbotron")]//p/img'
     prevSearch = '//a[contains(text(), "Yesterday")]'
+    namer = joinPathPartsNamer(imageparts=range(2), joinchar='-')
     help = 'Index format: mmddyy'
-
-    def namer(self, image_url, page_url):
-        unused, date, filename = image_url.rsplit('/', 2)
-        return '%s-%s' % (date, filename)
 
 
 class MarryMe(ParserScraper):
@@ -147,8 +141,9 @@ class MistyTheMouse(ParserScraper):
 class MonkeyUser(ParserScraper):
     url = 'https://www.monkeyuser.com/'
     imageSearch = '//div[d:class("content")]/p/img'
-    prevSearch = '//a[text()="Prev"]'
-    multipleImagesPerStrip = True
+    prevSearch = '//a[d:class("link-reverse")]'
+    latestSearch = '//div[d:class("comic")]/a'
+    starter = indirectStarter
 
     def shouldSkipUrl(self, url, data):
         # videos
@@ -196,6 +191,7 @@ class MyLifeWithFel(ParserScraper):
     stripUrl = baseUrl + 'api/posts/%s'
     firstStripUrl = stripUrl % '1'
     url = firstStripUrl
+    namer = joinPathPartsNamer(pageparts=(-1,))
     adult = True
 
     def starter(self):
@@ -209,9 +205,6 @@ class MyLifeWithFel(ParserScraper):
 
     def extract_image_urls(self, url, data):
         return [self.baseUrl + json.loads(data.text_content())['post']['image']]
-
-    def namer(self, imageUrl, pageUrl):
-        return pageUrl.rsplit('/', 1)[-1]
 
 
 class MynarskiForest(_ParserScraper):

@@ -5,9 +5,10 @@
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
 from re import compile, escape
 
-from ..util import tagre
-from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
+from .. import util
 from ..helpers import indirectStarter, joinPathPartsNamer
+from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
+from ..util import tagre
 from .common import ComicControlScraper, WordPressNaviIn, WordPressScraper
 
 
@@ -50,11 +51,6 @@ class FauxPas(_ParserScraper):
     imageSearch = '//img[@name]'
     prevSearch = '//a[img[@alt="Previous"]]'
     help = 'Index format: nnn'
-
-
-class FireflyCross(WordPressScraper):
-    url = 'http://www.fireflycross.pensandtales.com/'
-    firstStripUrl = url + '?comic=05062002'
 
 
 class FirstWorldProblems(_ParserScraper):
@@ -180,7 +176,7 @@ class FredoAndPidjin(ParserScraper):
     prevSearch = '//span[d:class("prev")]/a'
     latestSearch = '//section[d:class("latest")]//a'
     starter = indirectStarter
-    namer = joinPathPartsNamer(pageparts=(0, 1, 2), imageparts=(-1,))
+    namer = joinPathPartsNamer(pageparts=range(2), imageparts=(-1,))
 
 
 class Freefall(_ParserScraper):
@@ -217,7 +213,7 @@ class FriendsYouAreStuckWith(WordPressScraper):
     def namer(self, imageUrl, pageUrl):
         page = self.getPage(pageUrl)
         strip = self.match(page, '//div[@id="comic-wrap"]/@class')[0].replace('comic-id-', '')
-        return strip + '_' + imageUrl.rstrip('/').rsplit('/', 1)[-1]
+        return strip + '_' + util.urlpathsplit(imageUrl)[-1]
 
 
 class FullFrontalNerdity(_BasicScraper):
@@ -249,7 +245,7 @@ class FurPiled(ParserScraper):
 
     def getPrevUrl(self, url, data):
         # Skip missing pages
-        nextStrip = int(url.rsplit('/', 1)[-1].split('.', 1)[0].replace('fp-', '')) - 1
+        nextStrip = int(util.urlpathsplit(url)[-1].split('.', 1)[0].replace('fp-', '')) - 1
         if nextStrip in [407, 258, 131, 110, 97, 31]:
             nextStrip = nextStrip - 1
         return self.stripUrl % nextStrip

@@ -5,10 +5,11 @@
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
 from re import compile, escape
 
-from ..scraper import _BasicScraper, _ParserScraper, ParserScraper
-from ..helpers import bounceStarter, queryNamer, indirectStarter
+from .. import util
+from ..helpers import bounceStarter, indirectStarter, joinPathPartsNamer
+from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
 from ..util import tagre
-from .common import ComicControlScraper, WordPressScraper, WordPressNavi
+from .common import ComicControlScraper, WordPressNavi, WordPressScraper
 
 
 class PandyLand(_ParserScraper):
@@ -144,12 +145,12 @@ class PeterAndWhitney(_ParserScraper):
 class PHDComics(ParserScraper):
     BROKEN_COMMENT_END = compile(r'--!>')
 
-    baseUrl = 'http://phdcomics.com/'
+    baseUrl = 'https://phdcomics.com/'
     url = baseUrl + 'comics.php'
     stripUrl = baseUrl + 'comics/archive.php?comicid=%s'
     firstStripUrl = stripUrl % '1'
-    imageSearch = ('//img[@id="comic2"]',
-        r'//img[d:class("img-responsive") and re:test(@name, "comic\d+")]')
+    imageSearch = (r'//img[starts-with(@name, "comic") and re:test(@src, "\.[a-z]{3,4}$")]',
+        '//img[d:class("img-responsive") and @title]')
     multipleImagesPerStrip = True
     prevSearch = '//a[img[contains(@src, "prev_button")]]'
     nextSearch = '//a[img[contains(@src, "next_button")]]'
@@ -176,12 +177,6 @@ class Picklewhistle(ComicControlScraper):
 class PicPakDog(WordPressScraper):
     url = 'http://www.picpak.net/'
     firstStripUrl = url + 'comic/dogs-cant-spell/'
-
-
-# Keep, because naming is different to PHDComics...
-class PiledHigherAndDeeper(PHDComics):
-    starter = bounceStarter
-    namer = queryNamer('comicid', use_page_url=True)
 
 
 class Pixel(_BasicScraper):
@@ -211,8 +206,8 @@ class PlushAndBlood(ParserScraper):
     prevSearch = '//a[contains(text(), "PREV")]'
 
 
-class PokeyThePenguin(_ParserScraper):
-    url = 'http://www.yellow5.com/pokey/archive/'
+class PokeyThePenguin(ParserScraper):
+    url = 'https://www.yellow5.com/pokey/archive/'
     stripUrl = url + 'index%s.html'
     firstStripUrl = stripUrl % '1'
     imageSearch = '//p/img'
@@ -226,14 +221,40 @@ class PokeyThePenguin(_ParserScraper):
         mo = compile(r"index(\d+)\.html").search(url)
         num = int(mo.group(1)) - 1
         prefix = url.rsplit('/', 1)[0]
-        return "%s/index%d.html" % (prefix, num)
+        return f"{prefix}/index{num}.html"
 
 
-class PoorlyDrawnLines(_ParserScraper):
-    url = 'http://poorlydrawnlines.com/comic/'
-    firstStripUrl = url + 'campus-characters/'
-    imageSearch = '//div[d:class("comic")]//img'
+class PoorlyDrawnLines(ParserScraper):
+    url = 'https://poorlydrawnlines.com/'
+    stripUrl = url + 'comic/%s/'
+    multipleImagesPerStrip = True
+    firstStripUrl = stripUrl % 'hardly-essayists'
+    imageSearch = '//div[d:class("entry-content")]//noscript/img'
     prevSearch = '//a[@rel="prev"]'
+    namer = joinPathPartsNamer(imageparts=range(-3, 0))
+
+    def shouldSkipUrl(self, url, _data):
+        """Skip pages without a comic."""
+        skipUrls = [self.stripUrl % s for s in (
+            'hope-it-all-works-out-new-book-coming-this-fall',
+            'poorly-drawn-lines-animated-series',
+            'poorly-drawn-lines-episode-two',
+            'watch-poorly-drawn-lines-on-hulu',
+        )]
+        return url in skipUrls
+
+    def getPrevUrl(self, url: str, data):
+        """Skip missing comics which redirect back to home page"""
+        if url == self.stripUrl % '8198':
+            return self.stripUrl % 'excited-2'
+        elif url == self.stripUrl % '8186':
+            return self.stripUrl % 'to-hell-2'
+        elif url == self.stripUrl % '8177':
+            return self.stripUrl % 'feel-real'
+        elif url == self.stripUrl % '2056':
+            return self.stripUrl % 'stereotype'
+
+        return super().getPrevUrl(url, data)
 
 
 class PoppyOPossum(WordPressScraper):
@@ -273,13 +294,8 @@ class PrinceOfSartar(WordPressNavi):
     firstStripUrl = stripUrl % 'introduction-chapter-1'
     nextSearch = '//a[d:class("navi-next")]'
     starter = bounceStarter
+    namer = joinPathPartsNamer(pageparts=(-1,))
     help = 'Index format: name'
-
-    def namer(self, image_url, page_url):
-        """Use page URL to contruct a unique name."""
-        title = page_url.rsplit('/', 2)[1]
-        image_ext = image_url.rsplit('.', 1)[1]
-        return '%s.%s' % (title, image_ext)
 
 
 class ProphecyOfTheCircle(WordPressNavi):
@@ -287,14 +303,14 @@ class ProphecyOfTheCircle(WordPressNavi):
     stripUrl = url + 'comic/%s/'
     firstStripUrl = stripUrl % 'prologue'
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix duplicate filenames
-        filename = imageUrl.rsplit('/', 1)[-1]
-        if '2015/12/jamet101' in imageUrl:
+        filename = util.urlpathsplit(image_url)[-1]
+        if '2015/12/jamet101' in image_url:
             filename = filename.replace('101', '10')
-        elif '2012-02-20-jahrd156' in imageUrl:
+        elif '2012-02-20-jahrd156' in image_url:
             filename = filename.replace('156', '157')
-        elif '2011-10-02-jahrd137' in imageUrl:
+        elif '2011-10-02-jahrd137' in image_url:
             filename = filename.replace('137', '137-1')
         # Fix inconsistent filenames
         if filename[0] == '2':
@@ -334,4 +350,4 @@ class PvPOnline(ParserScraper):
     endOfLife = True
 
     def namer(self, image_url, page_url):
-        return 'pvp' + image_url.rsplit('/', 1)[-1]
+        return 'pvp' + util.urlpathsplit(image_url)[-1]

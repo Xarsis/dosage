@@ -3,12 +3,18 @@
 # SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
 # SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
 # SPDX-FileCopyrightText: © 2019 Daniel Ring
-from re import compile, escape, IGNORECASE
+from re import IGNORECASE, compile, escape
 
+from .. import util
+from ..helpers import bounceStarter, joinPathPartsNamer
 from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
 from ..util import tagre
-from ..helpers import bounceStarter
-from .common import ComicControlScraper, WordPressScraper, WordPressNaviIn, WordPressWebcomic
+from .common import (
+    ComicControlScraper,
+    WordPressNaviIn,
+    WordPressScraper,
+    WordPressWebcomic,
+)
 
 
 class WapsiSquare(WordPressNaviIn):
@@ -57,12 +63,12 @@ class WereIWolf(_ParserScraper):
                 '3 Black and White - Princess and Knight',
                 '4 Black and White - part 3')
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Prepend chapter number to image filename
         for chapter in self.chapters:
-            if chapter in pageUrl:
+            if chapter in page_url:
                 chapterNum = chapter[0]
-        return chapterNum + '_' + imageUrl.rsplit('/', 1)[-1]
+        return chapterNum + '_' + util.urlpathsplit(image_url)[-1]
 
     def getPrevUrl(self, url, data):
         # Fix missing navigation links between chapters
@@ -92,9 +98,7 @@ class WhiteNoiseLee(ComicControlScraper):
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % '1-0'
     starter = bounceStarter
-
-    def namer(self, imageUrl, pageUrl):
-        return pageUrl.rsplit('/', 1)[-1] + '.' + imageUrl.rsplit('.', 1)[-1]
+    namer = joinPathPartsNamer(pageparts=(-1,))
 
 
 class Whomp(ComicControlScraper):
@@ -121,9 +125,7 @@ class Widdershins(ComicControlScraper):
     stripUrl = url + 'wdshn/%s'
     firstStripUrl = stripUrl % 'sleight-of-hand-cover'
     starter = bounceStarter
-
-    def namer(self, imageUrl, pageUrl):
-        return pageUrl.rsplit('/', 1)[-1] + '.' + imageUrl.rsplit('.', 1)[-1]
+    namer = joinPathPartsNamer(pageparts=(-1,))
 
 
 class Wigu(_ParserScraper):

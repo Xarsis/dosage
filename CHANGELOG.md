@@ -6,6 +6,59 @@ The format is based on
 
 ## [Unreleased]
 
+## [3.2] - 2025-11-04
+
+### Security
+
+- Fixes [CVE-2025-64184]: Directory Traversal through crafted HTTP responses
+
+[CVE-2025-64184]: https://github.com/webcomics/dosage/security/advisories/GHSA-4vcx-3pj3-44m7
+
+### Added
+
+- Support for Python 3.14
+- Some comics
+- DEV: Trusted publishing
+
+### Changed
+
+- "Smarter" URL splitting, trailing slashes shouldn't confuse modules anymore
+- DEV: Switched default branch name to `main`
+- DEV: Switched from CodeClimate to qlty.sh
+
+# Fixed
+
+- Some comic modules
+- Add `Accept-Language` header to all requests to satisfy some WAFs
+
+## [3.1] - 2025-05-19
+
+### Added
+
+- Support for Python 3.11-3.13
+- Some comics
+- DEV: Extended scraper API with a `extract_image_urls` method
+- DEV: pre-commit hooks are uses for code style & linting
+- DEV: A new matcher for matching the start of class names
+
+### Changed
+
+- Replaced custom output with Python stdlib logging and rich - This should make
+  it easier to embed dosage into other tools.
+- robots.txt parsing is now more lenient, bringing dosage more in line with other
+  downloading tools like yt-dlp & gallery-dl
+- Modernized PyInstaller integration
+
+### Removed
+
+- Support for Python 3.7
+- Some comics
+- DEV: Dropped CSS support
+
+### Fixed
+- Many comics
+- Better shell completion support
+
 ## [3.0] - 2022-06-06
 
 ### Added
@@ -835,7 +888,9 @@ the 2.16 release to fix the broken update check in that release.
 - Initial public release
 
 
-[Unreleased]: https://github.com/webcomics/dosage/compare/3.0...HEAD
+[Unreleased]: https://github.com/webcomics/dosage/compare/3.2...HEAD
+[3.2]: https://github.com/webcomics/dosage/compare/3.1...3.2
+[3.1]: https://github.com/webcomics/dosage/compare/3.0...3.1
 [3.0]: https://github.com/webcomics/dosage/compare/2.17...3.0
 [2.17]: https://github.com/webcomics/dosage/compare/2.16...2.17
 [2.16]: https://github.com/webcomics/dosage/compare/2.15...2.16
@@ -863,4 +918,3 @@ the 2.16 release to fix the broken update check in that release.
 [1.10]: https://github.com/webcomics/dosage/compare/1.9...1.10
 [1.9]: https://github.com/webcomics/dosage/compare/1.8...1.9
 [1.8]: https://github.com/webcomics/dosage/compare/1.7...1.8
-

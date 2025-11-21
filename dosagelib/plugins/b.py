@@ -1,14 +1,20 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
-# Copyright (C) 2012-2014 Bastian Kleineidam
-# Copyright (C) 2015-2020 Tobias Gruetzmacher
-# Copyright (C) 2019-2020 Daniel Ring
+# SPDX-FileCopyrightText: © 2004 Tristan Seligmann and Jonathan Jacobs
+# SPDX-FileCopyrightText: © 2012 Bastian Kleineidam
+# SPDX-FileCopyrightText: © 2015 Tobias Gruetzmacher
+# SPDX-FileCopyrightText: © 2019 Daniel Ring
 from re import compile, escape
 
+from .. import util
+from ..helpers import indirectStarter, joinPathPartsNamer
+from ..scraper import ParserScraper, _BasicScraper, _ParserScraper
 from ..util import tagre
-from ..scraper import _BasicScraper, _ParserScraper
-from ..helpers import indirectStarter
-from .common import ComicControlScraper, WordPressScraper, WordPressNavi, WordPressWebcomic
+from .common import (
+    ComicControlScraper,
+    WordPressNavi,
+    WordPressScraper,
+    WordPressWebcomic,
+)
 
 
 class BackOffice(WordPressNavi):
@@ -17,13 +23,13 @@ class BackOffice(WordPressNavi):
     firstStripUrl = stripUrl % 'back-office'
 
 
-class BadassMuthas(_BasicScraper):
-    url = 'http://badassmuthas.com/pages/comic.php'
+class BadassMuthas(ParserScraper):
+    url = ('https://web.archive.org/web/20200117233227/'
+        'http://badassmuthas.com/pages/comic.php')
     stripUrl = url + '?%s'
     firstStripUrl = stripUrl % '1'
-    imageSearch = compile(tagre("img", "src", r'(/images/comicsissue[^"]+)'))
-    prevSearch = compile(tagre("a", "href", r'([^"]+)') +
-                         tagre("img", "src", r'/images/comicsbuttonBack\.gif'))
+    imageSearch = '//img[contains(@src,"/comicsissue")]'
+    prevSearch = '//a[./img[contains(@src,"/comicsbuttonBack")]]'
     help = 'Index format: nnn'
 
 
@@ -83,27 +89,18 @@ class Bearmageddon(WordPressScraper):
     starter = indirectStarter
 
 
-class Beetlebum(_BasicScraper):
-    url = 'http://blog.beetlebum.de/'
-    rurl = escape(url)
-    stripUrl = url + '%s'
-    firstStripUrl = stripUrl % '2006/03/10/quiz-fur-ruskiphile'
+class Beetlebum(ParserScraper):
+    url = 'https://blog.beetlebum.de/'
+    stripUrl = url + '%s/'
+    firstStripUrl = stripUrl % '2005/08/12/my-first-blog'
     starter = indirectStarter
+    namer = joinPathPartsNamer(pageparts=range(-4, 0), imageparts=(-1,))
     multipleImagesPerStrip = True
-    imageSearch = compile(tagre('img', 'src', r'(http://blog\.beetlebum\.de/wp-content/uploads/[^"]+)'))
-    prevSearch = compile(tagre('a', 'href',
-                               r'(%s\d{4}/\d{2}/\d{2}/[^"]*)' % rurl,
-                               after='prev'))
-    latestSearch = compile(tagre('a', 'href',
-                                 r'(%s\d{4}/\d{2}/\d{2}/[^"]+)' % rurl,
-                                 after='bookmark'))
+    imageSearch = '//div[d:class("entry-content")]//img'
+    prevSearch = '//a[@rel="prev"]'
+    latestSearch = '//a[@rel="bookmark"]'
     help = 'Index format: yyyy/mm/dd/striptitle'
     lang = 'de'
-
-    def namer(self, image_url, page_url):
-        indexes = tuple(page_url.rstrip('/').split('/')[-4:])
-        name = '%s-%s-%s-%s' % indexes
-        return name + '_' + image_url.split('/')[-1]
 
 
 class Bethellium(WordPressWebcomic):
@@ -135,9 +132,9 @@ class BeyondTheVeil(WordPressScraper):
     firstStripUrl = stripUrl % '01252010'
     endOfLife = True
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix inconsistent filenames
-        filename = imageUrl.rsplit('/', 1)[-1]
+        filename = util.urlpathsplit(image_url)[-1]
         filename = filename.replace('BtV_pg43_bw', '2014-04-25-BtV_pg43_bw')
         filename = filename.replace('BtVpg28Ch7b', '2014-07-04-BtVpg28Ch7b')
         return filename
@@ -189,28 +186,26 @@ class BirdBoy(WordPressScraper):
                 strip = 'page-{0}'.format(pageNr)
         return self.stripUrl.format(volume, strip)
 
-    def namer(self, imageUrl, pageUrl):
+    def namer(self, image_url, page_url):
         # Fix inconsistent filenames
-        filename = imageUrl.rsplit('/', 1)[-1]
+        imgparts = util.urlpathsplit(image_url)
+        filename = imgparts[-1]
         if filename == 'image.jpg':
-            [year, month] = imageUrl.rsplit('/', 3)[-3:-1]
-            pageNr = int(pageUrl.rsplit('/', 1)[-2].rsplit('-', 1)[-1])
-            filename = '{0}-{1}-Vol2-pg{2}.jpg'.format(year, month, pageNr)
+            year, month = imgparts[-3:-1]
+            pageNr = int(page_url.rsplit('/', 1)[-2].rsplit('-', 1)[-1])
+            filename = f'{year}-{month}-Vol2-pg{pageNr}.jpg'
         elif filename == '27637.jpg':
             filename = 'BB_Vol2_Cover.jpg'
         return filename
 
 
-class BittersweetCandyBowl(_ParserScraper):
+class BittersweetCandyBowl(ParserScraper):
     url = 'https://www.bittersweetcandybowl.com/'
     stripUrl = url + '%s.html'
     firstStripUrl = stripUrl % 'c1/p1'
     imageSearch = '//img[@id="page_img"]'
     prevSearch = '//a[@rel="prev"]'
-
-    def namer(self, imageUrl, pageUrl):
-        filename = imageUrl.rsplit('/', 2)
-        return filename[1] + '_' + filename[2]
+    namer = joinPathPartsNamer(imageparts=range(-2, 0))
 
 
 class BlankIt(_ParserScraper):
@@ -229,29 +224,24 @@ class BlondeSunrise(_ParserScraper):
     prevSearch = '//a[img[contains(@src, "previous")]]'
 
 
-class BloodBound(WordPressScraper):
-    url = 'http://bloodboundcomic.com/'
-    firstStripUrl = 'http://bloodboundcomic.com/comic/06112006/'
-
-
 class Bloodline(WordPressScraper):
     url = 'http://w0lfmare.xepher.net/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % 'pg-1-2'
     imageSearch = '//div[@id="comic"]//img[not(contains(@src, "TWC-vote-image"))]'
 
-    def namer(self, imageUrl, pageUrl):
-        # Fix filenames of early comics
-        return imageUrl.rsplit('/', 1)[-1].replace('gen-6', 'Bloodline')
-
-
-class BloomingFaeries(WordPressScraper):
-    adult = True
-    url = 'http://www.bloomingfaeries.com/'
-    firstStripUrl = url + 'comic/public/pit-stop/'
-
     def namer(self, image_url, page_url):
-        return "_".join(image_url.rsplit('/', 3)[1:])
+        # Fix filenames of early comics
+        return util.urlpathsplit(image_url)[-1].replace('gen-6', 'Bloodline')
+
+
+class BloomingFaeries(ParserScraper):
+    url = 'https://www.bloomingfaeries.com/'
+    firstStripUrl = url + 'comic/public/pit-stop/'
+    imageSearch = '//div[@id="spliced-comic"]//img'
+    prevSearch = '//a[d:class("previous-comic")]'
+    adult = True
+    namer = joinPathPartsNamer(imageparts=range(-3, 0))
 
 
 class BMovieComic(_ParserScraper):
@@ -326,13 +316,13 @@ class ButtercupFestival(_ParserScraper):
     )
 
 
-class ButternutSquash(_BasicScraper):
-    url = 'http://www.butternutsquash.net/'
-    rurl = escape(url)
-    stripUrl = url + '%s/'
+class ButternutSquash(ParserScraper):
+    url = ('https://web.archive.org/web/20170319023859/'
+        'http://www.butternutsquash.net/')
+    stripUrl = url + '2003/04/16/meet-da-punks/%s/'  # The website is very broken
     firstStripUrl = stripUrl % '2003/04/16/meet-da-punks'
-    imageSearch = compile(tagre("img", "src", r'(%scomics/[^"]+)' % rurl))
-    prevSearch = compile(tagre("a", "href", r'(%s[^"]+)' % rurl, after="prev"))
+    imageSearch = '//div[@id="comic"]//img'
+    prevSearch = '//a[@rel="prev"]'
     help = 'Index format: yyyy/mm/dd/strip-name-author-name'
 
 

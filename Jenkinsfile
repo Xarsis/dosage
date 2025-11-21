@@ -1,9 +1,6 @@
 def pys = [
-    [name: 'Python 3.13', docker: '3.13-bookworm', tox:'py313,flake8', main: true],
-    [name: 'Python 3.12', docker: '3.12-bookworm', tox:'py312', main: false],
-    [name: 'Python 3.11', docker: '3.11-bookworm', tox:'py311', main: false],
-    [name: 'Python 3.10', docker: '3.10-bookworm', tox:'py310', main: false],
-    [name: 'Python 3.9',  docker: '3.9-bookworm',  tox:'py39',  main: false],
+    [name: 'Python 3.14', docker: '3.14-bookworm', tox:'py314', main: true],
+    [name: 'Python 3.13', docker: '3.13-bookworm', tox:'py313', main: false],
     [name: 'Python 3.8',  docker: '3.8-bookworm',  tox:'py38',  main: false],
 ]
 
@@ -41,8 +38,9 @@ pys.each { py ->
                     if (py.main) {
                         sh """
                             HOME='$tmpDir'
-                            pip install --no-warn-script-location build
+                            pip install --no-warn-script-location build pre-commit
                             python -m build
+                            python -m pre_commit run --all-files || true
                         """
                     }
                 }
@@ -61,8 +59,8 @@ pys.each { py ->
                     ]
 
                     recordIssues sourceCodeEncoding: 'UTF-8',
-                        referenceJobName: 'dosage/master',
-                        tool: flake8(pattern: '.tox/flake8.log', reportEncoding: 'UTF-8')
+                        referenceJobName: 'dosage/main',
+                        tool: flake8(reportEncoding: 'UTF-8')
                 }
                 junit '.tox/reports/*/junit.xml'
             }
@@ -75,6 +73,7 @@ pys.each { py ->
 parallel(tasks)
 parallel modern: {
         stage('Modern Windows binary') {
+            // FIXME: Update to 3.14 when brotli wheel is available
             windowsBuild('3.13', 'dosage.exe')
         }
     },
@@ -111,7 +110,7 @@ def windowsBuildCommands(pyver, exename) {
             tar xvf dist/dosage-*.tar.gz
             cd dosage-*
             xvfb-run sh -c "
-                wine python -m pip install .[css] &&
+                wine python -m pip install .[bash,compression] &&
                 cd scripts &&
                 wine python -m PyInstaller -y dosage.spec;
                 wineserver -w" 2>&1 | tee log.txt
