@@ -23,7 +23,7 @@ class QuestionableContent(ParserScraper):
     prevSearch = '//a[text()="Previous"]'
     nextSearch = '//a[text()="Next"]'
     help = 'Index format: n (unpadded)'
-    textSearch = '//div[@id="news"]//text()'
+    textSearch = '//div[@id="newspost"]//text()'
     textOptional = True
 
 
