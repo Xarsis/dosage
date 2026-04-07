@@ -181,6 +181,7 @@ class HtmlEventHandler(EventHandler):
         self.html.write(u'<div class="navlink">')
         if self.yesterdayUrl:
             self.html.write(u'<a href="%s">Previous Day</a> | ' % self.yesterdayUrl)
+        self.html.write(u'<a href="../">Index</a> | ')
         self.html.write(u'<a href="%s">Next Day</a></div>\n' % self.tomorrowUrl)
 
 
@@ -243,7 +244,17 @@ class HtmlEventHandler(EventHandler):
         if pageUrl != self.lastUrl:
             self.html.write(u'<li><a class="comicurl" href="%s">%s</a>\n' % (pageUrl, pageUrl))
 
-        self.html.write(u'<br/><img src="%s"' % imageUrl)
+        """ This break allows a special case for Penny Arcade to show their 3 comics side-by-side """
+        skip_break = (
+            comic.scraper.name.lower() == "pennyarcade" and
+            filename.lower().endswith(("1.jpg"), "2.jpg"))
+        )
+
+        if skip_break:
+            self.html.write(u'<img src="%s"' % imageUrl)
+        else:
+            self.html.write(u'<br/><img src="%s"' % imageUrl)
+
         if size:
             self.html.write(' width="%d" height="%d"' % size)
         self.html.write('/>\n')
