@@ -181,7 +181,7 @@ class HtmlEventHandler(EventHandler):
         self.html.write(u'<div class="navlink">')
         if self.yesterdayUrl:
             self.html.write(u'<a href="%s">Previous Day</a> | ' % self.yesterdayUrl)
-        self.html.write(u'<a href="../">Index</a> | ')
+        self.html.write(u'<a href="./">Index</a> | ')
         self.html.write(u'<a href="%s">Next Day</a></div>\n' % self.tomorrowUrl)
 
 
