@@ -247,7 +247,7 @@ class HtmlEventHandler(EventHandler):
         """ This break allows a special case for Penny Arcade to show their 3 comics side-by-side """
         skip_break = (
             comic.scraper.name.lower() == "pennyarcade" and
-            filename.lower().endswith(("1.jpg"), "2.jpg"))
+            filename.lower().endswith(("1.jpg"), ("2.jpg"))
         )
 
         if skip_break:
