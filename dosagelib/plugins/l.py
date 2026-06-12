@@ -48,7 +48,7 @@ class LeastICouldDo(ParserScraper):
     url = 'https://leasticoulddo.com/'
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % '20030210'
-    imageSearch = '//div[d:class("single-post-comic")]//img'
+    imageSearch = '//div[d:class("single-post-comic")]//img[d:class("attachment-full")]'
     prevSearch = '//a[@rel="prev"]'
     latestSearch = '//a[contains(@href, "/comic/")]'
     starter = indirectStarter
@@ -165,7 +165,7 @@ class LittleTales(_ParserScraper):
         page = url.rsplit('=', 1)[1]
         if page in self.nav:
             return self.stripUrl % self.nav[page]
-        return super(LittleTales, self).getPrevUrl(url, data)
+        return super().getPrevUrl(url, data)
 
 
 class LoadingArtist(_ParserScraper):

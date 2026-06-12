@@ -29,7 +29,7 @@ class GoComicsUpdater(ComicListUpdater):
         """Parse one GoComics alphabetic page."""
         data = self.get_url(url, expand=False)
 
-        for comiclink in self.xpath(data, '//a[d:class_start("ComicsAtoZ_comics__link_")]'):
+        for comiclink in self.xpath(data, '//a[contains(@class, "ComicsAtoZ_comics__link_")]'):
             link = comiclink.attrib['href'].split('/')[1].strip()
             name = comiclink.xpath('.//h3')[0].text
             self.add_comic(name, (link, self.detect_lang(name, link)))
@@ -56,7 +56,7 @@ class GoComicsUpdater(ComicListUpdater):
     def get_entry(self, name: str, data: tuple[str, str]) -> str:
         url, lang = data
         langopt = ", '%s'" % lang if lang else ''
-        return u"cls('%s', '%s'%s)," % (name, url, langopt)
+        return f"cls('{name}', '{url}'{langopt}),"
 
 
 if __name__ == '__main__':

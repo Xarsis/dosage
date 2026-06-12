@@ -1,7 +1,7 @@
 def pys = [
     [name: 'Python 3.14', docker: '3.14-bookworm', tox:'py314', main: true],
     [name: 'Python 3.13', docker: '3.13-bookworm', tox:'py313', main: false],
-    [name: 'Python 3.8',  docker: '3.8-bookworm',  tox:'py38',  main: false],
+    [name: 'Python 3.10', docker: '3.10-bookworm', tox:'py310', main: false],
 ]
 
 properties([
@@ -77,12 +77,6 @@ parallel modern: {
             windowsBuild('3.13', 'dosage.exe')
         }
     },
-    legacy: {
-        stage('Legacy Windows binary') {
-            // Still compatible with Windows 7
-            windowsBuild('3.8', 'dosage-legacy.exe')
-        }
-    },
     report: {
         stage('Allure report') {
             processAllure()
@@ -131,7 +125,7 @@ def processAllure() {
                 unzip dir: 'allure-data', quiet: true, zipFile: 'allure-history.zip'
                 sh 'rm -f allure-history.zip'
             }
-            sh 'podman run --rm -v $PWD:/work --userns=keep-id docker.io/tobix/allure-cli generate allure-data'
+            sh 'podman run --rm -v $PWD:/work --userns=keep-id docker.io/tobix/allure-cli:2 generate allure-data'
             zip archive: true, dir: 'allure-report', glob: 'history/**', zipFile: 'allure-history.zip'
             publishHTML reportDir: 'allure-report', reportFiles: 'index.html', reportName: 'Allure Report'
         }

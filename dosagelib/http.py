@@ -92,7 +92,7 @@ def check_robotstxt(url: str, session: Session) -> None:
     roboturl = _get_roboturl(url)
     rp = _get_robotstxt_parser(roboturl, session)
     if not rp.can_fetch(configuration.App, str(url)):
-        raise IOError("%s is disallowed by %s" % (url, roboturl))
+        raise OSError(f"{url} is disallowed by {roboturl}")
 
 
 def _get_roboturl(url: str) -> str:
@@ -101,7 +101,7 @@ def _get_roboturl(url: str) -> str:
     return parse.urlunsplit((pu.scheme, pu.netloc, "/robots.txt", None, None))
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _get_robotstxt_parser(url, session: Session) -> robotparser.RobotFileParser:
     """Get a RobotFileParser for the given robots.txt URL."""
     rp = robotparser.RobotFileParser()
@@ -118,9 +118,10 @@ def _get_robotstxt_parser(url, session: Session) -> robotparser.RobotFileParser:
         elif req.status_code == 200:
             rp.parse(req.text.splitlines())
             logger.trace('GET %r successful, %i bytes', url, len(req.content))
-            if rp.default_entry:
+            # Newer versions (3.14.5+) of RobotFileParser don't use default_entry anymore
+            de = hasattr(rp, "groups") and rp.groups.get("*") or rp.default_entry
+            if de:
                 # Filter default deny rules
-                de = rp.default_entry
                 de.rulelines = [rule for rule in de.rulelines if rule.allowance]
     return rp
 

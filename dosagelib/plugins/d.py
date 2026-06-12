@@ -105,10 +105,10 @@ class DeepFried(_BasicScraper):
     help = 'Index format: none'
 
 
-class DeerMe(_ParserScraper):
+class DeerMe(ParserScraper):
     url = 'https://www.deerme.net/'
     firstStripUrl = url + 'a.php?b=comic/c001-image/dm-20031121-001-0001'
-    imageSearch = '//div[d:class("ComicImage")]/img'
+    imageSearch = '//figure[d:class("CoreImage")]/img'
     prevSearch = '//a[@rel="prev"]'
     nextSearch = '//a[@rel="next"]'
     starter = bounceStarter
@@ -150,7 +150,7 @@ class DerTodUndDasMaedchen(_ParserScraper):
     stripUrl = url + '?bild=%s.jpg'
     firstStripUrl = stripUrl % '00_01_01'
     imageSearch = '//img[contains(@src, "images/tod/teil2")]'
-    prevSearch = u'//a[text()="zur\u00FCck"]'
+    prevSearch = '//a[text()="zur\u00FCck"]'
     help = 'Index format: nn_nn_nn'
     lang = 'de'
 
@@ -237,7 +237,7 @@ class DoemainOfOurOwn(ParserScraper):
             month = filename[0:2]
             day = filename[2:4]
             year = ('19' if filename[4] == '9' else '20') + filename[4:6]
-            filename = '%s-%s-%s%s' % (year, month, day, filename[6:])
+            filename = f'{year}-{month}-{day}{filename[6:]}'
         return filename
 
 

@@ -10,8 +10,8 @@ from ..scraper import ParserScraper
 
 class GoComics(ParserScraper):
     url = 'https://www.gocomics.com/'
-    imageSearch = '//section[contains(@class, "showComicViewer")]//script[@type="application/ld+json"]/text()'
-    prevSearch = '//a[contains(@class, "button_previous")]'
+    imageSearch = '//div[contains(@class, "__showComicViewer__comic")]//script[@type="application/ld+json"]/text()'
+    prevSearch = '//a[contains(@class, "__controls__button_previous")]'
     help = 'Index format: yyyy/mm/dd'
 
     def __init__(self, name, path, lang=None):
