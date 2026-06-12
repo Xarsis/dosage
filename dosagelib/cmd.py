@@ -76,6 +76,8 @@ def setup_options(console: console.Console) -> ArgumentParser:
         help='traverse and retrieve all comic strips')
     parser.add_argument('-c', '--continue', action='store_true', dest='cont',
         help='traverse and retrieve comic strips until an existing one is found')
+    parser.add_argument('-s', '--show-all', action='store_true', dest='show_all',
+        help='in HTML/RSS output, show an entry for every comic even '                         'if no new strip was downloaded')
     basepath_opt = parser.add_argument('-b', '--basepath', action='store',
         default='Comics', metavar='PATH',
         help='set the path to create invidivual comic directories in, default is Comics')

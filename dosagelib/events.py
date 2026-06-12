@@ -6,7 +6,9 @@ import html
 import json
 import logging
 import os
+import datetime
 import time
+import glob
 from urllib.parse import quote as url_quote
 
 import imagesize
@@ -168,9 +170,19 @@ class HtmlEventHandler(EventHandler):
       .navlink or the Previous/Next bars,
       .comictitle for the titles themselves,
       .comicurl for the address of the comic,
-      .comictext for any text included with the comic."""
-    
+      .comictext for any text included with the comic,
+      .comic-images for side-by-side image layout (flex row),
+      .no-new-strip for the 'already downloaded' notice (when --show-all is set)."""
+
     name = 'html'
+
+    def __init__(self, basepath, baseurl, allowdownscale, show_all=False) -> None:
+        """Initialize HTML handler."""
+        super().__init__(basepath, baseurl, allowdownscale)
+        # When True, emit a placeholder entry for comics with no new images.
+        self.show_all = show_all
+        # Tracks which comics received ≥1 new image this run (comic scraper name).
+        self._comics_with_new_images: set[str] = set()
 
     def fnFromDate(self, date):
         """Get filename from date."""
@@ -187,6 +199,9 @@ class HtmlEventHandler(EventHandler):
 
     def start(self):
         """Start HTML output."""
+        # Reset per-run tracking
+        self._comics_with_new_images = set()
+
         today = time.time()
         yesterday = today - 86400
         tomorrow = today + 86400
@@ -234,8 +249,14 @@ class HtmlEventHandler(EventHandler):
 
     def comicDownloaded(self, comic, filename):
         """Write HTML entry for downloaded comic."""
+        # Track whether this is the first image for this comic this run,
+        # so we know when to open the flex wrapper div.
+        first_image_for_comic = comic.scraper.name not in self._comics_with_new_images
+        self._comics_with_new_images.add(comic.scraper.name)
+
         if self.lastComic != comic.scraper.name:
             self.newComic(comic)
+
         size = None
         if self.allowdownscale:
             size = getDimensionForImage(filename, MaxImageSize)
@@ -243,7 +264,12 @@ class HtmlEventHandler(EventHandler):
         pageUrl = comic.referrer
         if pageUrl != self.lastUrl:
             self.html.write(f'<li><a class="comicurl" href="{pageUrl}">{pageUrl}</a>\n')
-        self.html.write('<br/><img src="%s"' % imageUrl)
+
+        # Open the flex wrapper on the first image for this comic.
+        if first_image_for_comic:
+            self.html.write('<div class="comic-images">\n')
+
+        self.html.write('<img src="%s"' % imageUrl)
         if size:
             self.html.write(' width="%d" height="%d"' % size)
         self.html.write('/>\n')
@@ -260,6 +286,47 @@ class HtmlEventHandler(EventHandler):
             self.html.write('</ul>\n')
         self.html.write('<li class="comictitle">%s</li></div>\n' % comic.scraper.name)
         self.html.write('<ul>\n')
+
+    def comicDone(self, comic):
+        """Called when a comic scraper finishes, whether or not images were downloaded."""
+        if comic.name in self._comics_with_new_images:
+            # Close the flex wrapper that was opened in comicDownloaded.
+            self.html.write('</div><!-- .comic-images -->\n')
+        elif self.show_all:
+            # No new images but --show-all is set: write a placeholder notice.
+            self._write_no_new_strip_entry(comic)
+
+    def _write_no_new_strip_entry(self, comic) -> None:
+        """Write a placeholder section for a comic that had no new images this run."""
+        # Find the most recently modified file in the comic's download directory.
+        comic_dir = os.path.join(self.basepath, comic.name)
+        last_date_str = "unknown date"
+        if os.path.isdir(comic_dir):
+            files = [
+                f for f in glob.glob(os.path.join(comic_dir, '*'))
+                if os.path.isfile(f)
+            ]
+            if files:
+                newest = max(files, key=os.path.getmtime)
+                mtime = os.path.getmtime(newest)
+                last_date_str = datetime.date.fromtimestamp(mtime).strftime('%B %d, %Y')
+
+        # Close any open list item from a previous comic, then write the header
+        # and notice using the same structure as newComic() / comicDownloaded().
+        if self.lastUrl is not None:
+            self.html.write('</li>\n')
+        if self.lastComic is not None:
+            self.html.write('</ul>\n')
+        self.html.write('<li class="comictitle">%s</li>\n' % comic.name)
+        self.html.write('<ul>\n')
+        self.html.write(
+            '<li><p class="no-new-strip">'
+            'Last comic from %s already downloaded.'
+            '</p></li>\n' % last_date_str
+        )
+        # Update lastComic so the next comic's newComic() call closes correctly.
+        self.lastComic = comic.name
+        self.lastUrl = None
 
     def end(self):
         """End HTML output."""
@@ -352,11 +419,15 @@ def getHandlerNames():
 _handlers = []
 
 
-def addHandler(name, basepath=None, baseurl=None, allowDownscale=False):
+def addHandler(name, basepath=None, baseurl=None, allowDownscale=False, show_all=False):
     """Add an event handler with given name."""
     if basepath is None:
         basepath = '.'
-    _handlers.append(_handler_classes[name](basepath, baseurl, allowDownscale))
+    handler_class = _handler_classes[name]
+    if name == 'html':
+        _handlers.append(handler_class(basepath, baseurl, allowDownscale, show_all=show_all))
+    else:
+        _handlers.append(handler_class(basepath, baseurl, allowDownscale))
 
 
 def clear_handlers():
@@ -381,6 +452,12 @@ class MultiHandler:
         Should be overridden in subclass."""
         for handler in _handlers:
             handler.comicPageLink(scraper, url, prevUrl)
+
+    def comicDone(self, comic):
+        """Emit comicDone events for handlers that support it."""
+        for handler in _handlers:
+            if hasattr(handler, 'comicDone'):
+                handler.comicDone(comic)
 
     def end(self):
         """Emit end events for handlers."""
