@@ -263,6 +263,8 @@ class HtmlEventHandler(EventHandler):
         imageUrl = self.getUrlFromFilename(filename)
         pageUrl = comic.referrer
         if pageUrl != self.lastUrl:
+            if self.lastUrl is not None:
+                self.html.write('</li>\n')
             self.html.write(f'<li><a class="comicurl" href="{pageUrl}">{pageUrl}</a>\n')
 
         # Open the flex wrapper on the first image for this comic.
@@ -280,18 +282,19 @@ class HtmlEventHandler(EventHandler):
 
     def newComic(self, comic):
         """Start new comic list in HTML."""
-        if self.lastUrl is not None:
-            self.html.write('</li>\n')
         if self.lastComic is not None:
             self.html.write('</ul>\n')
-        self.html.write('<li class="comictitle">%s</li></div>\n' % comic.scraper.name)
+        self.html.write('<li class="comictitle">%s</li>\n' % comic.scraper.name)
         self.html.write('<ul>\n')
+        self.lastUrl = None
 
     def comicDone(self, comic):
         """Called when a comic scraper finishes, whether or not images were downloaded."""
         if comic.name in self._comics_with_new_images:
-            # Close the flex wrapper that was opened in comicDownloaded.
+            # Close the flex wrapper opened in comicDownloaded, then the open <li>.
             self.html.write('</div><!-- .comic-images -->\n')
+            self.html.write('</li>\n')
+            # lastComic is already set; lastUrl stays as-is for nav link logic.
         elif self.show_all:
             # No new images but --show-all is set: write a placeholder notice.
             self._write_no_new_strip_entry(comic)
@@ -330,8 +333,6 @@ class HtmlEventHandler(EventHandler):
 
     def end(self):
         """End HTML output."""
-        if self.lastUrl is not None:
-            self.html.write('</li>\n')
         if self.lastComic is not None:
             self.html.write('</ul>\n')
         self.html.write('</ul>\n')
