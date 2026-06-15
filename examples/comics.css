@@ -2,7 +2,6 @@ body {
    background-color: black;
    color: lightblue;
 }
-
 table {
    align: center;
    width: 100%;
@@ -10,46 +9,38 @@ table {
    margin-left: auto;
    margin-right: auto;
 }
-
 th, td {
    padding: 10px;
    vertical-align: top;
    border: 0px;
    margin: 0px;
 }
-
 ul {
    list-style-type: none;
 }
-
 br {
   display: block;
   content: "";
   margin-top: 6px;
 }
-
 img {
    display: block;
    margin: 10px;
    border: 4px solid white;
    background-color: white;
 }
-
 a:link {
    color: lightcyan;
 }
-
 a:visited {
    color: lavender;
 }
-
 .navlink {
    color: white;
    width: 25%;
    text-align: center;
    margin: auto; 
 }
-
 .comictitle {
    font-size: 30px;
    text-align: center;
@@ -57,13 +48,11 @@ a:visited {
    padding-top: 25px;
    margin: 10px;
 }
-
 .comicurl {
    text-align: left;
    font-size: 15px;
    margin: 10px;
 }
-
 .comictext {
    font-size: 15px;
    padding: 0px 0px 10px 50px;
@@ -71,7 +60,6 @@ a:visited {
    color: lightgrey;
    text-align: left;
 }
-
 .clickBtn {
    font-size: 20px;
    font-weight: bold;
@@ -85,36 +73,70 @@ a:visited {
    background-color: black;
    width: 100%;
 }
-
 .clickBtn:after {
 /* content: '\21E8'; */
    content: '\002B';
    float: right;
 }
-
 .clickBtn:before {
    content: '\002B';
    float: left;
 }
-
 .clickBtn:hover, .clicked {
    background-color: #111;
 }
-
 .clicked:after {
 /* content: '\21E9'; */
    content: '\2212';
 }
-
 .clicked:before {
    content: '\2212';
 }
-
 .list {
    display: none;
 }
-
 /*h2 a {
   text-decoration: none;
 }*/
 
+/* Side-by-side image layout for comics with multiple panels (e.g. Penny Arcade) */
+.comic-images {
+   display: flex;
+   flex-direction: row;
+   gap: 4px;
+   align-items: flex-start;
+   flex-wrap: nowrap;
+}
+.comic-images img {
+   display: inline-block; /* override the block rule above so flex works */
+   flex: 1 1 auto;
+   width: 0;              /* forces equal sizing across all panels */
+   min-width: 0;
+   height: auto;
+   max-width: none;
+}
+
+/* Adult content spoiler */
+details.adult-comic summary {
+   cursor: pointer;
+   color: #e07070;
+   font-weight: bold;
+   padding: 4px 8px;
+   background: #1a0000;
+   border: 1px solid #7a3030;
+   border-radius: 4px;
+   display: inline-block;
+   margin: 4px 0;
+}
+details.adult-comic summary:hover {
+   background: #2a0000;
+}
+
+/* No-new-strip notice (shown with --show-all flag) */
+.no-new-strip {
+   color: #888;
+   font-style: italic;
+   border-left: 3px solid #444;
+   padding: 6px 10px;
+   margin: 4px 0;
+}
