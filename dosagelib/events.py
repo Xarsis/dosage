@@ -299,7 +299,7 @@ class HtmlEventHandler(EventHandler):
     def _write_no_new_strip_entry(self, comic) -> None:
         """Write a placeholder section for a comic that had no new images this run."""
         # Find the most recently modified file in the comic's download directory.
-        comic_dir = os.path.join(self.basepath, comic.name)
+        comic_dir = comic.get_download_dir(self.basepath)
         last_date_str = "unknown date"
         if os.path.isdir(comic_dir):
             files = [

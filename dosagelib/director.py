@@ -128,25 +128,26 @@ class ComicGetter(threading.Thread):
         except Exception as msg:
             logger.exception(msg)  # noqa: LOG010 # FIXME: Legacy stuff, needs refactor
             self.errors += 1
-
-    def saveComicStrip(self, strip):
-        """Save a comic strip which can consist of multiple images."""
-        allskipped = True
-        for image in strip.getImages():
-            try:
-                if self.options.dry_run:
-                    filename, saved = "", False
-                else:
-                    filename, saved = image.save(self.options.basepath)
-                if saved:
-                    allskipped = False
-                if self.stopped:
-                    break
-            except Exception as msg:
-                logger.exception('Could not save image at %r to %r: %s',
-                    image.referrer, image.filename, msg)
-                self.errors += 1
-        return allskipped
+        finally:
+            events.getHandler().comicDone(scraperobj)
+        def saveComicStrip(self, strip):
+            """Save a comic strip which can consist of multiple images."""
+            allskipped = True
+            for image in strip.getImages():
+                try:
+                    if self.options.dry_run:
+                        filename, saved = "", False
+                    else:
+                        filename, saved = image.save(self.options.basepath)
+                    if saved:
+                        allskipped = False
+                    if self.stopped:
+                        break
+                except Exception as msg:
+                    logger.exception('Could not save image at %r to %r: %s',
+                        image.referrer, image.filename, msg)
+                    self.errors += 1
+            return allskipped
 
     def stop(self):
         """Mark this thread as stopped."""
@@ -160,7 +161,8 @@ def getComics(options):
 
     if options.handler:
         for name in set(options.handler):
-            events.addHandler(name, options.basepath, options.baseurl, options.allowdownscale)
+            events.addHandler(name, options.basepath, options.baseurl, options.allowdownscale,
+                  show_all=getattr(options, 'show_all', False))
     events.getHandler().start()
     errors = 0
     try:
