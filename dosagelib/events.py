@@ -267,8 +267,13 @@ class HtmlEventHandler(EventHandler):
                 self.html.write('</li>\n')
             self.html.write(f'<li><a class="comicurl" href="{pageUrl}">{pageUrl}</a>\n')
 
-        # Open the flex wrapper on the first image for this comic.
+        # Open the adult spoiler wrapper and flex image wrapper on the first image.
         if first_image_for_comic:
+            if comic.scraper.adult:
+                self.html.write(
+                    '<details class="adult-comic">\n'
+                    '<summary>\u26a0\ufe0f Adult content \u2014 click to reveal</summary>\n'
+                )
             self.html.write('<div class="comic-images">\n')
 
         self.html.write('<img src="%s"' % imageUrl)
@@ -291,10 +296,12 @@ class HtmlEventHandler(EventHandler):
     def comicDone(self, comic):
         """Called when a comic scraper finishes, whether or not images were downloaded."""
         if comic.name in self._comics_with_new_images:
-            # Close the flex wrapper opened in comicDownloaded, then the open <li>.
+            # Close the flex wrapper opened in comicDownloaded.
             self.html.write('</div><!-- .comic-images -->\n')
+            # Close the adult spoiler wrapper if one was opened.
+            if comic.adult:
+                self.html.write('</details><!-- .adult-comic -->\n')
             self.html.write('</li>\n')
-            # lastComic is already set; lastUrl stays as-is for nav link logic.
         elif self.show_all:
             # No new images but --show-all is set: write a placeholder notice.
             self._write_no_new_strip_entry(comic)
