@@ -107,7 +107,7 @@ a:visited {
    align-items: flex-start;
    flex-wrap: nowrap;
 }
-.comic-images img {
+.comic-images:has(img + img) img {
    display: inline-block; /* override the block rule above so flex works */
    flex: 1 1 auto;
    width: 0;              /* forces equal sizing across all panels */
@@ -140,3 +140,4 @@ details.adult-comic summary:hover {
    padding: 6px 10px;
    margin: 4px 0;
 }
+
