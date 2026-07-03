@@ -183,6 +183,8 @@ class HtmlEventHandler(EventHandler):
         self.show_all = show_all
         # Tracks which comics received ≥1 new image this run (comic scraper name).
         self._comics_with_new_images: set[str] = set()
+        # Buffers the most recent comic text to write after the flex div closes.
+        self._comic_text: str | None = None
 
     def fnFromDate(self, date):
         """Get filename from date."""
@@ -201,6 +203,7 @@ class HtmlEventHandler(EventHandler):
         """Start HTML output."""
         # Reset per-run tracking
         self._comics_with_new_images = set()
+        self._comic_text = None
 
         today = time.time()
         yesterday = today - 86400
@@ -280,8 +283,9 @@ class HtmlEventHandler(EventHandler):
         if size:
             self.html.write(' width="%d" height="%d"' % size)
         self.html.write('/>\n')
+        # Buffer comic text so it can be written after the flex div closes in comicDone().
         if comic.text:
-            self.html.write('<br/><div class="comictext">%s</div>\n' % html.escape(comic.text))
+            self._comic_text = html.escape(comic.text)
         self.lastComic = comic.scraper.name
         self.lastUrl = pageUrl
 
@@ -298,6 +302,11 @@ class HtmlEventHandler(EventHandler):
         if comic.name in self._comics_with_new_images:
             # Close the flex wrapper opened in comicDownloaded.
             self.html.write('</div><!-- .comic-images -->\n')
+            # Write buffered comic text here, outside the flex div, so it
+            # appears below the images rather than beside them.
+            if self._comic_text:
+                self.html.write('<br/><div class="comictext">%s</div>\n' % self._comic_text)
+                self._comic_text = None
             # Close the adult spoiler wrapper if one was opened.
             if comic.adult:
                 self.html.write('</details><!-- .adult-comic -->\n')
