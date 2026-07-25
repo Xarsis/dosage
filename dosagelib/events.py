@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Maximum width or height to display an image in exported pages.
 # Note that only the displayed size is adjusted, not the image itself.
-MaxImageSize = (800, 800)
+MaxImageSize = (800, 1200)
 
 
 class EventHandler:
